@@ -1,0 +1,358 @@
+BRANDING ENTERPRISE — DOCUMENTAÇÃO COMPLETA (Português)
+========================================================
+
+Este documento descreve **todas** as customizações aplicadas no Chatwoot 4.8.0 para habilitar o menu Branding, armazenar logos por domínio, gerar favicons `.ico` e garantir que o dashboard, login, widget e demais páginas sempre usem o branding correto. Cada seção explica (1) o objetivo da alteração, (2) o arquivo modificado/criado e (3) o código atual.
+
+----------------------------------------
+1. Controller Admin::BrandingController
+----------------------------------------
+**Arquivo:** `app/controllers/admin/branding_controller.rb`
+**Objetivo:** Expor uma tela simples para admins definirem Logo, Logo Dark e Favicon por domínio, gravando arquivos em `public/uploads/branding`.
+- Gera nomes determinísticos: `<domínio>-light.png`, `<domínio>-dark.png`, `<domínio>-favico.ico`.
+- Converte automaticamente o favicon enviado para formato `.ico` via MiniMagick.
+- Persiste os valores em `InstallationConfig` como hashes por domínio (fallback `default`).
+
+```
+require 'stringio'
+
+module Admin
+  class BrandingController < ApplicationController
+    before_action :authenticate_user!
+    before_action :set_account_context
+    before_action :set_configs
+
+    BRANDING_CONFIGS = {
+      logo: 'LOGO',
+      logo_dark: 'LOGO_DARK',
+      logo_thumbnail: 'LOGO_THUMBNAIL'
+    }.freeze
+    FILENAME_SUFFIX = {
+      logo: '-light',
+      logo_dark: '-dark',
+      logo_thumbnail: '-favico'
+    }.freeze
+
+    def show
+      respond_to do |format|
+        format.html
+        format.json { render_configs_json }
+      end
+    end
+
+    def update
+      changes_applied = false
+
+      branding_params.each do |key, attributes|
+        config_name = BRANDING_CONFIGS[key.to_sym]
+        next unless config_name
+
+        new_value = processed_value(key, attributes)
+        next if new_value.blank?
+
+        persist_config(config_name, new_value)
+        changes_applied = true
+      end
+
+      set_configs
+
+      respond_to do |format|
+        if changes_applied
+          GlobalConfig.clear_cache
+          format.html { redirect_to admin_branding_path(account_id: @account&.id), notice: 'Branding atualizado com sucesso.' }
+          format.json { render_configs_json }
+        else
+          format.html do
+            flash.now[:alert] = 'Nenhuma alteração enviada.'
+            render :show, status: :unprocessable_entity
+          end
+          format.json { render_configs_json(status: :unprocessable_entity) }
+        end
+      end
+    end
+
+    private
+
+    def set_account_context
+      @account = resolve_account_from_scope
+      @domain_label = resolve_domain_label
+      @domain_key = sanitize_domain_key(@domain_label)
+      return if @account
+
+      respond_to do |format|
+        format.html do
+          redirect_to(root_path, alert: 'Conta não encontrada para atualizar branding.')
+        end
+        format.json do
+          render json: { error: 'Account not found' }, status: :not_found
+        end
+      end
+      false
+    end
+
+    def resolve_account_from_scope
+      return nil unless current_user
+
+      scoped_accounts = current_user.accounts
+      account_id = params[:account_id].presence || scoped_accounts.first&.id
+      return nil unless account_id
+
+      scoped_accounts.find(account_id)
+    rescue ActiveRecord::RecordNotFound
+      nil
+    end
+
+    def resolve_domain_label
+      params[:domain].presence || @account&.domain.presence || request.host.presence || 'default'
+    end
+
+    def sanitize_domain_key(source)
+      source.to_s.strip.downcase.presence || 'default'
+    end
+
+    def set_configs
+      @branding_records = BRANDING_CONFIGS.each_with_object({}) do |(key, config_name), memo|
+        memo[key] = InstallationConfig.find_by(name: config_name)
+      end
+      @resolved_branding = BRANDING_CONFIGS.each_with_object({}) do |(key, _), memo|
+        memo[key] = domain_specific_value(@branding_records[key]&.value)
+      end
+    end
+
+    def domain_specific_value(value)
+      return value unless value.is_a?(Hash)
+
+      value[@domain_key] || value['default'] || value.values.first
+    end
+
+    def branding_params
+      params.fetch(:branding, {}).permit(
+        logo: %i[url file],
+        logo_dark: %i[url file],
+        logo_thumbnail: %i[url file]
+      )
+    end
+
+    def processed_value(field_key, attributes)
+      if attributes[:file].present?
+        store_upload(field_key, attributes[:file])
+      else
+        attributes[:url].presence
+      end
+    end
+
+    def store_upload(field_key, file)
+      domain_slug = (@domain_label.presence || 'default').downcase.gsub(/[^a-z0-9\.-]/, '-')
+      suffix = FILENAME_SUFFIX[field_key.to_sym] || ''
+      upload_dir = Rails.root.join('public', 'uploads', 'branding')
+      FileUtils.mkdir_p(upload_dir)
+
+      if field_key.to_sym == :logo_thumbnail
+        filename = "#{domain_slug}#{suffix}.ico"
+        destination = upload_dir.join(filename)
+        write_favicon(file, destination)
+        return "/uploads/branding/#{filename}"
+      end
+
+      extension = File.extname(file.original_filename).downcase
+      extension = '.png' if extension.blank?
+      filename = "#{domain_slug}#{suffix}#{extension}"
+      destination = upload_dir.join(filename)
+      write_binary(file, destination)
+      "/uploads/branding/#{filename}"
+    end
+
+    def write_binary(file, destination)
+      file.rewind if file.respond_to?(:rewind)
+      File.open(destination, 'wb') { |f| f.write(file.read) }
+    ensure
+      file.rewind if file.respond_to?(:rewind)
+    end
+
+    def write_favicon(file, destination)
+      require 'mini_magick'
+      blob = extract_file_blob(file)
+      image = MiniMagick::Image.read(blob)
+      image.format 'ico'
+      image.write(destination)
+    rescue StandardError => e
+      Rails.logger.error("Branding favicon conversion failed: #{e.message}")
+      write_binary(StringIO.new(blob || ''), destination)
+    ensure
+      rewind_uploaded_file(file)
+    end
+
+    def extract_file_blob(file)
+      if file.respond_to?(:tempfile)
+        file.tempfile.rewind
+        file.tempfile.read
+      else
+        file.rewind if file.respond_to?(:rewind)
+        file.read
+      end
+    end
+
+    def rewind_uploaded_file(file)
+      if file.respond_to?(:tempfile)
+        file.tempfile.rewind
+      elsif file.respond_to?(:rewind)
+        file.rewind
+      end
+    end
+
+    def persist_config(name, value)
+      config = InstallationConfig.find_or_initialize_by(name: name)
+      scoped_values = existing_scoped_values(config.value)
+      scoped_values[@domain_key] = value
+      config.value = scoped_values
+      config.locked = false if config.locked?
+      config.save!
+    end
+
+    def existing_scoped_values(current_value)
+      return {} if current_value.blank?
+      return current_value.deep_dup if current_value.is_a?(Hash)
+
+      { 'default' => current_value }
+    end
+
+    def render_configs_json(status: :ok)
+      payload = BRANDING_CONFIGS.each_with_object({}) do |(key, _), memo|
+        memo[key] = @resolved_branding[key]
+      end
+
+      render json: { configs: payload, domain: @domain_label, domain_key: @domain_key, account_id: @account&.id }, status: status
+    end
+  end
+end
+```
+
+----------------------------------------
+2. View HTML do painel
+----------------------------------------
+**Arquivo:** `app/views/admin/branding/show.html.erb`
+**Descrição:** Layout Tailwind com banner do domínio selecionado, preview das logos e formulário `multipart`.
+```
+<div class="cw-container mx-auto ...
+ ...
+</div>
+```
+
+(Conteúdo completo igual ao snippet acima.)
+
+----------------------------------------
+3. Página Vue de Branding
+----------------------------------------
+**Arquivo:** `app/javascript/dashboard/routes/dashboard/settings/branding/BrandingSettings.vue`
+**Destaques:**
+- Usa `useAccount()` para descobrir `accountId` e domínio exibido.
+- Busca/atualiza `/admin/branding.json` com `account_id`.
+- Mostra previews e reseta os inputs após salvar.
+
+(Código completo conforme snippet anterior.)
+
+----------------------------------------
+4. Rotas do SPA
+----------------------------------------
+`app/javascript/dashboard/routes/dashboard/settings/branding/branding.routes.js` adiciona a rota `/app/accounts/:id/settings/branding`.
+`app/javascript/dashboard/routes/dashboard/settings/settings.routes.js` importa o módulo `branding` e adiciona em `...branding.routes`.
+
+----------------------------------------
+5. Menu do Sidebar
+----------------------------------------
+`app/javascript/dashboard/components-next/sidebar/Sidebar.vue` inclui um item "Branding" dentro de Settings que aponta para `branding_settings_index`.
+
+----------------------------------------
+6. Traduções/Strings
+----------------------------------------
+`app/javascript/dashboard/i18n/locale/en/settings.json` já continha "BRANDING", mas mantemos para referência.
+
+----------------------------------------
+7. Concern & Resolvedor de Branding
+----------------------------------------
+- `app/controllers/concerns/branding_overrides.rb` virou um wrapper que chama o novo módulo.
+- **Novo:** `lib/branding_config_resolver.rb` concentra toda a lógica de escolher valores por host e procurar favicons no disco (`public/uploads/branding/<host>-favico.*`).
+
+----------------------------------------
+8. Middleware e Current
+----------------------------------------
+- `lib/current.rb`: adiciona `thread_mattr_accessor :branding_host`.
+- **Novo:** `lib/branding_host_middleware.rb` captura `request.host` no ciclo Rack e popula `Current.branding_host`. Incluído em `config/application.py` com `config.middleware.use BrandingHostMiddleware`.
+- `lib/global_config.rb`: toda vez que `GlobalConfig.get` é chamado, os resultados passam por `BrandingConfigResolver.apply(..., Current.branding_host)`; assim **qualquer** controller/layout recebe o branding certo sem precisar chamar o concern manualmente.
+
+----------------------------------------
+9. Controllers Rails consumindo branding
+----------------------------------------
+Além dos novos arquivos, os seguintes controllers foram atualizados para incluir `BrandingOverrides` e usar os valores resolvidos:
+
+- `app/controllers/dashboard_controller.rb`
+- `app/controllers/widgets_controller.rb`
+- `app/controllers/api/v1/widget/configs_controller.rb`
+- `app/controllers/survey/responses_controller.rb`
+- `app/controllers/public/api/v1/portals/base_controller.rb`
+
+(Todos os trechos estão reproduzidos na seção inicial do documento.)
+
+----------------------------------------
+10. Atualizações nos Layouts (favicons)
+----------------------------------------
+### 10.1 Dashboard/Login (`app/views/layouts/vueapp.html.erb`)
+- Substitui os `<link rel="icon">` fixos por `favicon_url = @global_config['LOGO_THUMBNAIL'] || '/favicon-32x32.png'`.
+- Define `<link rel="icon" type="image/x-icon" href="...">` e duplica para `shortcut icon`.
+- Mantém as classes `.favicon`, mas agora cada `<link>` possui `data-default-favicon` apontando para a imagem customizada e `data-badge-favicon` para os ícones estáticos `/favicon-badge-*.png` usados pelo alert de áudio.
+
+### 10.2 Super Admin (`app/views/layouts/super_admin/application.html.erb`)
+- Após ler `GlobalConfig.get('DYNAMIC_TITLE_FROM_DOMAIN')`, busca também `GlobalConfig.get('LOGO_THUMBNAIL')` e define `<link rel="icon" ...>` com o mesmo padrão acima.
+
+----------------------------------------
+11. Helper de favicon (badges de notificação)
+----------------------------------------
+**Arquivo:** `app/javascript/dashboard/helper/AudioAlerts/faviconHelper.js`
+- Atualizado para ler `data-default-favicon`/`data-badge-favicon`. Mantém fallback para `/favicon-<size>.png` quando os atributos não existem.
+
+----------------------------------------
+12. Rotas Rails
+----------------------------------------
+`config/routes.rb` recebe `namespace :admin do resource :branding ... end` antes dos blocos de autenticação.
+
+----------------------------------------
+13. Arquivos criados
+----------------------------------------
+- `app/controllers/admin/branding_controller.rb`
+- `app/views/admin/branding/show.html.erb`
+- `app/javascript/dashboard/routes/dashboard/settings/branding/BrandingSettings.vue`
+- `app/javascript/dashboard/routes/dashboard/settings/branding/branding.routes.js`
+- `app/controllers/concerns/branding_overrides.rb` (novo concern leve)
+- `lib/branding_host_middleware.rb`
+- `lib/branding_config_resolver.rb`
+
+----------------------------------------
+14. Demais arquivos modificados
+----------------------------------------
+- `app/controllers/api/v1/widget/configs_controller.rb`
+- `app/controllers/dashboard_controller.rb`
+- `app/controllers/public/api/v1/portals/base_controller.rb`
+- `app/controllers/survey/responses_controller.rb`
+- `app/controllers/widgets_controller.rb`
+- `app/javascript/dashboard/components-next/sidebar/Sidebar.vue`
+- `app/javascript/dashboard/helper/AudioAlerts/faviconHelper.js`
+- `app/javascript/dashboard/i18n/locale/en/settings.json`
+- `app/javascript/dashboard/routes/dashboard/settings/settings.routes.js`
+- `app/views/layouts/super_admin/application.html.erb`
+- `app/views/layouts/vueapp.html.erb`
+- `config/application.rb`
+- `config/routes.rb`
+- `lib/current.rb`
+- `lib/global_config.rb`
+
+----------------------------------------
+15. Fluxo de uso
+----------------------------------------
+1. Admin acessa `/app/accounts/:accountId/settings/branding`.
+2. Realiza upload das logos; o favicon vira `.ico` automático.
+3. O backend grava `InstallationConfig` como `{ "dominio.com": "/uploads/...-favico.ico" }`.
+4. Qualquer requisição (dashboard, login, widget, survey, portal público) passa pelo middleware, define `Current.branding_host` e `GlobalConfig` retorna o valor certo.
+5. Os layouts renderizam `<link rel="icon" ...>` com a imagem customizada e o helper JS mantém a troca temporária de favicon quando há badge.
+
+----------------------------------------
+FIM
+----------------------------------------

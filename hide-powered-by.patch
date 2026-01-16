@@ -1,0 +1,178 @@
+# PATCH: Remover “Powered by Chatwoot” (modo enterprise)
+#
+# Execute `git apply hide-powered-by.patch` após atualizar o Chatwoot
+# para reaplicar todas as customizações abaixo.
+
+diff --git a/app/controllers/api/v1/widget/configs_controller.rb b/app/controllers/api/v1/widget/configs_controller.rb
+index 458d0486c..e2d91e5f1 100644
+--- a/app/controllers/api/v1/widget/configs_controller.rb
++++ b/app/controllers/api/v1/widget/configs_controller.rb
+@@ -14,7 +14,8 @@ class Api::V1::Widget::ConfigsController < Api::V1::Widget::BaseController
+       'BRAND_NAME',
+       'WIDGET_BRAND_URL',
+       'MAXIMUM_FILE_UPLOAD_SIZE',
+-      'INSTALLATION_NAME'
++      'INSTALLATION_NAME',
++      'HIDE_POWERED_BY'
+     )
+   end
+
+diff --git a/app/controllers/dashboard_controller.rb b/app/controllers/dashboard_controller.rb
+index 5003c4c70..98c728e4c 100644
+--- a/app/controllers/dashboard_controller.rb
++++ b/app/controllers/dashboard_controller.rb
+@@ -10,6 +10,7 @@ class DashboardController < ActionController::Base
+     TERMS_URL
+     BRAND_URL
+     BRAND_NAME
++    HIDE_POWERED_BY
+     PRIVACY_URL
+     DISPLAY_MANIFEST
+     CREATE_NEW_ACCOUNT_FROM_DASHBOARD
+diff --git a/app/controllers/survey/responses_controller.rb b/app/controllers/survey/responses_controller.rb
+index afcb3f4c0..8724b870f 100644
+--- a/app/controllers/survey/responses_controller.rb
++++ b/app/controllers/survey/responses_controller.rb
+@@ -5,6 +5,12 @@ class Survey::ResponsesController < ActionController::Base
+   private
+
+   def set_global_config
+-    @global_config = GlobalConfig.get('LOGO_THUMBNAIL', 'BRAND_NAME', 'WIDGET_BRAND_URL', 'INSTALLATION_NAME')
++    @global_config = GlobalConfig.get(
++      'LOGO_THUMBNAIL',
++      'BRAND_NAME',
++      'WIDGET_BRAND_URL',
++      'INSTALLATION_NAME',
++      'HIDE_POWERED_BY'
++    )
+   end
+ end
+diff --git a/app/controllers/widgets_controller.rb b/app/controllers/widgets_controller.rb
+index 7f45ce636..e91e2dfcb 100644
+--- a/app/controllers/widgets_controller.rb
++++ b/app/controllers/widgets_controller.rb
+@@ -20,7 +20,8 @@ class WidgetsController < ActionController::Base
+       'WIDGET_BRAND_URL',
+       'DIRECT_UPLOADS_ENABLED',
+       'MAXIMUM_FILE_UPLOAD_SIZE',
+-      'INSTALLATION_NAME'
++      'INSTALLATION_NAME',
++      'HIDE_POWERED_BY'
+     )
+   end
+
+diff --git a/app/javascript/shared/components/Branding.vue b/app/javascript/shared/components/Branding.vue
+index 2f1a8d5d0..023fd3690 100644
+--- a/app/javascript/shared/components/Branding.vue
++++ b/app/javascript/shared/components/Branding.vue
+@@ -1,10 +1,12 @@
+ <script>
++import { parseBoolean } from '@chatwoot/utils';
+ import { useBranding } from 'shared/composables/useBranding';
+
+ const {
+   LOGO_THUMBNAIL: logoThumbnail,
+   BRAND_NAME: brandName,
+   WIDGET_BRAND_URL: widgetBrandURL,
++  HIDE_POWERED_BY: hidePoweredBy,
+ } = window.globalConfig || {};
+
+ export default {
+@@ -26,6 +28,7 @@ export default {
+         brandName,
+         logoThumbnail,
+         widgetBrandURL,
++        hidePoweredBy: parseBoolean(hidePoweredBy),
+       },
+     };
+   },
+@@ -47,13 +50,16 @@ export default {
+       }
+       return '';
+     },
++    shouldHideBranding() {
++      return this.disableBranding || this.globalConfig.hidePoweredBy;
++    },
+   },
+ };
+ </script>
+
+ <template>
+   <div
+-    v-if="globalConfig.brandName && !disableBranding"
++    v-if="globalConfig.brandName && !shouldHideBranding"
+     class="px-0 py-3 flex justify-center"
+   >
+     <a
+diff --git a/app/javascript/shared/store/globalConfig.js b/app/javascript/shared/store/globalConfig.js
+index 6b4c9a5ee..13679078c 100644
+--- a/app/javascript/shared/store/globalConfig.js
++++ b/app/javascript/shared/store/globalConfig.js
+@@ -24,6 +24,7 @@ const {
+   WIDGET_BRAND_URL: widgetBrandURL,
+   DISABLE_USER_PROFILE_UPDATE: disableUserProfileUpdate,
+   DEPLOYMENT_ENV: deploymentEnv,
++  HIDE_POWERED_BY: hidePoweredBy,
+ } = window.globalConfig || {};
+
+ const state = {
+@@ -49,6 +50,7 @@ const state = {
+   termsURL,
+   widgetBrandURL,
+   isEnterprise: parseBoolean(isEnterprise),
++  hidePoweredBy: parseBoolean(hidePoweredBy),
+ };
+
+ export const getters = {
+diff --git a/app/views/api/v1/widget/configs/create.json.jbuilder b/app/views/api/v1/widget/configs/create.json.jbuilder
+index 51c1067de..c06759b91 100644
+--- a/app/views/api/v1/widget/configs/create.json.jbuilder
++++ b/app/views/api/v1/widget/configs/create.json.jbuilder
+@@ -4,7 +4,7 @@ json.website_channel_config do
+   json.auth_token @token
+   json.avatar_url @web_widget.inbox.avatar_url
+   json.csat_survey_enabled @web_widget.inbox.csat_survey_enabled
+-  json.disable_branding @web_widget.inbox.account.feature_enabled?('disable_branding')
++  json.disable_branding @web_widget.inbox.account.feature_enabled?('disable_branding') || @global_config['HIDE_POWERED_BY']
+   json.enabled_features @web_widget.selected_feature_flags
+   json.enabled_languages available_locales_with_name
+   json.locale @web_widget.account.locale
+diff --git a/app/views/widgets/show.html.erb b/app/views/widgets/show.html.erb
+index 21e03cd6f..9f571ebe0 100644
+--- a/app/views/widgets/show.html.erb
++++ b/app/views/widgets/show.html.erb
+@@ -27,7 +27,7 @@
+         utcOffset: '<%= ActiveSupport::TimeZone[@web_widget.inbox.timezone].now.formatted_offset %>',
+         timezone: '<%= @web_widget.inbox.timezone %>',
+         allowMessagesAfterResolved: <%= @web_widget.inbox.allow_messages_after_resolved %>,
+-        disableBranding: <%= @web_widget.inbox.account.feature_enabled?('disable_branding') %>,
++        disableBranding: <%= @web_widget.inbox.account.feature_enabled?('disable_branding') || @global_config['HIDE_POWERED_BY'] %>,
+       }
+       window.chatwootPubsubToken = '<%= @contact_inbox.pubsub_token %>'
+       window.authToken = '<%= @token %>'
+diff --git a/config/installation_config.yml b/config/installation_config.yml
+index eff38ab3d..04344507d 100644
+--- a/config/installation_config.yml
++++ b/config/installation_config.yml
+@@ -42,6 +42,11 @@
+   value: 'Chatwoot'
+   display_title: 'Brand Name'
+   description: 'The name that would be used in emails and the widget'
++- name: HIDE_POWERED_BY
++  value: false
++  display_title: 'Hide Powered By'
++  description: 'Hide Chatwoot branding across the widget and surveys'
++  type: boolean
+ - name: TERMS_URL
+   value: 'https://www.chatwoot.com/terms-of-service'
+   display_title: 'Terms URL'
+   description: 'The terms of service URL displayed in Signup Page'
+diff --git a/scripts/set_hide_powered_by.rb b/scripts/set_hide_powered_by.rb
+new file mode 100644
+index 000000000..1a77c8ee9
+--- /dev/null
++++ b/scripts/set_hide_powered_by.rb
+@@
++InstallationConfig.find_or_initialize_by(name: 'HIDE_POWERED_BY').update(value: true)
++GlobalConfig.clear_cache
++puts "HIDE_POWERED_BY ativado!"
