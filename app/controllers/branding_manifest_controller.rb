@@ -3,7 +3,7 @@ class BrandingManifestController < ActionController::Base
     set_branding_account
     config = GlobalConfig.get('INSTALLATION_NAME', 'LOGO_THUMBNAIL')
     installation_name = config['INSTALLATION_NAME'].presence || 'Chatwoot'
-    favicon_url = config['LOGO_THUMBNAIL'].presence || '/favicon-32x32.png'
+    favicon_url = config['LOGO_THUMBNAIL']
 
     render json: {
       name: installation_name,
@@ -25,6 +25,8 @@ class BrandingManifestController < ActionController::Base
   end
 
   def manifest_icons(favicon_url)
+    return [] if favicon_url.blank?
+
     BrandingConfigResolver::ANDROID_ICON_SIZES.map do |size|
       {
         src: BrandingConfigResolver.icon_path(favicon_url, "android-icon-#{size}x#{size}"),

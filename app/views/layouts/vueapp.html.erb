@@ -13,11 +13,13 @@
     %>
     <title><%= installation_name %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0"/>
-    <% favicon_url = @global_config['LOGO_THUMBNAIL'].presence || '/favicon-32x32.png' %>
-    <% icon_path = ->(basename) { BrandingConfigResolver.icon_path(favicon_url, basename) } %>
-    <link rel="icon" type="image/x-icon" href="<%= favicon_url %>">
-    <link rel="shortcut icon" href="<%= favicon_url %>" type="image/x-icon">
-    <% if @global_config['DISPLAY_MANIFEST'] %>
+    <% favicon_url = @global_config['LOGO_THUMBNAIL'] %>
+    <% if favicon_url.present? %>
+      <% icon_path = ->(basename) { BrandingConfigResolver.icon_path(favicon_url, basename) } %>
+      <link rel="icon" type="image/x-icon" href="<%= favicon_url %>">
+      <link rel="shortcut icon" href="<%= favicon_url %>" type="image/x-icon">
+    <% end %>
+    <% if @global_config['DISPLAY_MANIFEST'] && favicon_url.present? %>
       <meta name="msapplication-TileColor" content="#1f93ff">
       <meta name="msapplication-TileImage" content="<%= icon_path.call('ms-icon-144x144') %>">
       <meta name="theme-color" content="#1f93ff">
@@ -41,7 +43,9 @@
       <% manifest_params = Current.account&.id ? { account_id: Current.account.id } : {} %>
       <link rel="manifest" href="<%= branding_manifest_path(manifest_params) %>">
     <% end %>
-    <link rel="icon" type="image/png" sizes="512x512" href="<%= favicon_url %>">
+    <% if favicon_url.present? %>
+      <link rel="icon" type="image/png" sizes="512x512" href="<%= favicon_url %>">
+    <% end %>
     <%= csrf_meta_tags %>
     <script>
       window.chatwootConfig = {
