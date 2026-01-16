@@ -1,4 +1,5 @@
 # Chatwoot Custom — v4.8.0  
+
 **Versão personalizada com suporte nativo ao recurso HIDE_POWERED_BY (modo enterprise)**  
 Este repositório contém uma versão modificada do Chatwoot 4.8.0 com o patch exclusivo para remoção completa do rodapé "*Powered by Chatwoot*" em:
 
