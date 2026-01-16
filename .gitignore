@@ -1,0 +1,18 @@
+# Environment
+.env
+.env.*
+
+# Logs
+log/
+*.log
+
+# Node
+node_modules/
+
+# Temp
+tmp/
+tmp/*
+
+# ML models
+vendor/db/*.onnx
+
