@@ -1,9 +1,10 @@
 # TODO : Delete this and associated spec once 'api/widget/config' end point is merged
 class WidgetsController < ActionController::Base
   include WidgetHelper
+  include BrandingOverrides
 
-  before_action :set_global_config
   before_action :set_web_widget
+  before_action :set_global_config
   before_action :ensure_account_is_active
   before_action :ensure_location_is_supported
   before_action :set_token
@@ -14,18 +15,22 @@ class WidgetsController < ActionController::Base
   private
 
   def set_global_config
-    @global_config = GlobalConfig.get(
+    config = GlobalConfig.get(
       'LOGO_THUMBNAIL',
       'BRAND_NAME',
       'WIDGET_BRAND_URL',
       'DIRECT_UPLOADS_ENABLED',
       'MAXIMUM_FILE_UPLOAD_SIZE',
-      'INSTALLATION_NAME'
+      'INSTALLATION_NAME',
+      'HIDE_POWERED_BY',
+      'DYNAMIC_TITLE_FROM_DOMAIN'
     )
+    @global_config = apply_branding_overrides(config, request.host)
   end
 
   def set_web_widget
     @web_widget = ::Channel::WebWidget.find_by!(website_token: permitted_params[:website_token])
+    Current.account = @web_widget.inbox.account
   rescue ActiveRecord::RecordNotFound
     Rails.logger.error('web widget does not exist')
     render json: { error: 'web widget does not exist' }, status: :not_found

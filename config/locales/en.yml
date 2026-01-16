@@ -30,6 +30,29 @@
 # available at https://guides.rubyonrails.org/i18n.html.
 
 en:
+  admin:
+    branding:
+      title: 'Branding'
+      description: 'Faca upload de novas logos ou informe um URL externo. Deixe o campo em branco para manter o valor atual.'
+      account_label: 'Conta selecionada'
+      account_fallback: 'Account #%{id}'
+      domain_label: 'Dominio de referencia'
+      default_domain: 'default'
+      domain_hint: 'Cada conta tem logos e favicons independentes. Use um dominio dedicado se quiser URLs diferentes por host.'
+      current_label: 'Atual'
+      upload_label: 'Upload'
+      url_label: 'URL personalizada'
+      url_placeholder: 'https://sua-cdn.com/logo.png'
+      save_button: 'Salvar alteracoes'
+      dynamic_title_suffix: 'Central de Atendimento'
+      dynamic_title_default: 'Chatwoot'
+      super_admin_title: 'Central de Atendimento'
+      widget_title_suffix: 'Cetral de Atendimento'
+      widget_title_default: 'Cetral de Atendimento'
+      flash:
+        success: 'Branding atualizado com sucesso.'
+        no_changes: 'Nenhuma alteracao enviada.'
+        account_missing: 'Conta nao encontrada para atualizar branding.'
   hello: 'Hello world'
   inbox:
     reauthorization:

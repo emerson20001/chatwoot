@@ -42,6 +42,16 @@
   value: 'Chatwoot'
   display_title: 'Brand Name'
   description: 'The name that would be used in emails and the widget'
+- name: HIDE_POWERED_BY
+  value: false
+  display_title: 'Hide Powered By'
+  description: 'Hide Chatwoot branding across the widget and surveys'
+  type: boolean
+- name: DYNAMIC_TITLE_FROM_DOMAIN
+  value: false
+  display_title: 'Dynamic Title From Domain'
+  description: 'Sets the dashboard title to "<domain> - Chatwoot"'
+  type: boolean
 - name: TERMS_URL
   value: 'https://www.chatwoot.com/terms-of-service'
   display_title: 'Terms URL'

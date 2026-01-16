@@ -1,7 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= @global_config['INSTALLATION_NAME'] %></title>
+    <% dynamic_title_enabled = @global_config['DYNAMIC_TITLE_FROM_DOMAIN'] %>
+    <% widget_title = if dynamic_title_enabled.to_s == 'true'
+                        raw_domain = request.host.to_s.gsub(/^www\./, '')
+                        suffix = t('admin.branding.widget_title_suffix')
+                        fallback = t('admin.branding.widget_title_default')
+                        raw_domain.present? ? "#{raw_domain} - #{suffix}" : fallback
+                      else
+                        @global_config['INSTALLATION_NAME']
+                      end %>
+    <title><%= widget_title %></title>
+
     <%= csrf_meta_tags %>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
     <script>
@@ -27,7 +37,7 @@
         utcOffset: '<%= ActiveSupport::TimeZone[@web_widget.inbox.timezone].now.formatted_offset %>',
         timezone: '<%= @web_widget.inbox.timezone %>',
         allowMessagesAfterResolved: <%= @web_widget.inbox.allow_messages_after_resolved %>,
-        disableBranding: <%= @web_widget.inbox.account.feature_enabled?('disable_branding') %>,
+        disableBranding: <%= @web_widget.inbox.account.feature_enabled?('disable_branding') || @global_config['HIDE_POWERED_BY'] %>,
       }
       window.chatwootPubsubToken = '<%= @contact_inbox.pubsub_token %>'
       window.authToken = '<%= @token %>'

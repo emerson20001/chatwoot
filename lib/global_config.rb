@@ -13,7 +13,7 @@ class GlobalConfig
       end
 
       typecast_config(config)
-      config.with_indifferent_access
+      BrandingConfigResolver.apply(config.with_indifferent_access, Current.branding_host)
     end
 
     def get_value(arg)

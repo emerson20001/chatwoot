@@ -1,34 +1,47 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>
-      <%= @global_config['INSTALLATION_NAME'] %>
-    </title>
+    <% dynamic_title_enabled = @global_config['DYNAMIC_TITLE_FROM_DOMAIN'] %>
+    <% installation_name = if dynamic_title_enabled.to_s == 'true'
+      raw_domain = request.host.to_s.gsub(/^www\./, '')
+      suffix = t('admin.branding.dynamic_title_suffix')
+      fallback = t('admin.branding.dynamic_title_default')
+      raw_domain.present? ? "#{raw_domain} - #{suffix}" : fallback
+      else
+        @global_config['INSTALLATION_NAME']
+      end 
+    %>
+    <title><%= installation_name %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0"/>
+    <% favicon_url = @global_config['LOGO_THUMBNAIL'].presence || '/favicon-32x32.png' %>
+    <% icon_path = ->(basename) { BrandingConfigResolver.icon_path(favicon_url, basename) } %>
+    <link rel="icon" type="image/x-icon" href="<%= favicon_url %>">
+    <link rel="shortcut icon" href="<%= favicon_url %>" type="image/x-icon">
     <% if @global_config['DISPLAY_MANIFEST'] %>
       <meta name="msapplication-TileColor" content="#1f93ff">
-      <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+      <meta name="msapplication-TileImage" content="<%= icon_path.call('ms-icon-144x144') %>">
       <meta name="theme-color" content="#1f93ff">
       <meta name="description" content="<%= @global_config['INSTALLATION_NAME'] %> is a customer support solution that helps companies engage customers over Messenger, Twitter, Telegram, WeChat, Whatsapp. Simply connect your channels and converse with your customers from a single place. Easily add new agents to your system and have them own and resolve conversations with customers. <%= @global_config['INSTALLATION_NAME'] %> also gives you real-time reports to measure your team's performance, canned responses to easily respond to frequently asked questions and private notes for agents to collaborate among themselves.">
       <% if ENV['IOS_APP_IDENTIFIER'].present? %>
         <meta name="apple-itunes-app" content='app-id=<%= ENV['IOS_APP_IDENTIFIER'] %>'>
       <% end %>
-      <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
-      <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
-      <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
-      <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
-      <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
-      <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
-      <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
-      <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
-      <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
-      <link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
-      <link class="favicon" rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-      <link class="favicon" rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
-      <link class="favicon" rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-      <link rel="manifest" href="/manifest.json">
+      <link rel="apple-touch-icon" sizes="57x57" href="<%= icon_path.call('apple-icon-57x57') %>">
+      <link rel="apple-touch-icon" sizes="60x60" href="<%= icon_path.call('apple-icon-60x60') %>">
+      <link rel="apple-touch-icon" sizes="72x72" href="<%= icon_path.call('apple-icon-72x72') %>">
+      <link rel="apple-touch-icon" sizes="76x76" href="<%= icon_path.call('apple-icon-76x76') %>">
+      <link rel="apple-touch-icon" sizes="114x114" href="<%= icon_path.call('apple-icon-114x114') %>">
+      <link rel="apple-touch-icon" sizes="120x120" href="<%= icon_path.call('apple-icon-120x120') %>">
+      <link rel="apple-touch-icon" sizes="144x144" href="<%= icon_path.call('apple-icon-144x144') %>">
+      <link rel="apple-touch-icon" sizes="152x152" href="<%= icon_path.call('apple-icon-152x152') %>">
+      <link rel="apple-touch-icon" sizes="180x180" href="<%= icon_path.call('apple-icon-180x180') %>">
+      <link rel="icon" type="image/png" sizes="192x192"  href="<%= icon_path.call('android-icon-192x192') %>">
+      <link class="favicon" rel="icon" type="image/png" sizes="32x32" href="<%= favicon_url %>">
+      <link class="favicon" rel="icon" type="image/png" sizes="96x96" href="<%= favicon_url %>">
+      <link class="favicon" rel="icon" type="image/png" sizes="16x16" href="<%= favicon_url %>">
+      <% manifest_params = Current.account&.id ? { account_id: Current.account.id } : {} %>
+      <link rel="manifest" href="<%= branding_manifest_path(manifest_params) %>">
     <% end %>
-    <link rel="icon" type="image/png" sizes="512x512" href="<%= @global_config['LOGO_THUMBNAIL'] %>">
+    <link rel="icon" type="image/png" sizes="512x512" href="<%= favicon_url %>">
     <%= csrf_meta_tags %>
     <script>
       window.chatwootConfig = {

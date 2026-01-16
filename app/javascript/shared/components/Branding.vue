@@ -1,10 +1,12 @@
 <script>
+import { parseBoolean } from '@chatwoot/utils';
 import { useBranding } from 'shared/composables/useBranding';
 
 const {
   LOGO_THUMBNAIL: logoThumbnail,
   BRAND_NAME: brandName,
   WIDGET_BRAND_URL: widgetBrandURL,
+  HIDE_POWERED_BY: hidePoweredBy,
 } = window.globalConfig || {};
 
 export default {
@@ -26,6 +28,7 @@ export default {
         brandName,
         logoThumbnail,
         widgetBrandURL,
+        hidePoweredBy: parseBoolean(hidePoweredBy),
       },
     };
   },
@@ -47,13 +50,16 @@ export default {
       }
       return '';
     },
+    shouldHideBranding() {
+      return this.disableBranding || this.globalConfig.hidePoweredBy;
+    },
   },
 };
 </script>
 
 <template>
   <div
-    v-if="globalConfig.brandName && !disableBranding"
+    v-if="globalConfig.brandName && !shouldHideBranding"
     class="px-0 py-3 flex justify-center"
   >
     <a

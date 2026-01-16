@@ -227,6 +227,35 @@
       }
     }
   },
+  "BRANDING_SETTINGS": {
+    "HEADER": "Branding",
+    "DOMAIN_LABEL": "Aplicando alteracoes ao dominio:",
+    "LOADING": "Carregando branding atual...",
+    "UPLOAD_LABEL": "Upload",
+    "CUSTOM_URL_LABEL": "URL personalizada",
+    "CUSTOM_URL_PLACEHOLDER": "https://cdn.suaempresa.com/logo.png",
+    "SAVE_BUTTON": "Salvar alteracoes",
+    "ALERTS": {
+      "LOAD_ERROR": "Nao foi possivel carregar o branding. Tente novamente.",
+      "NO_CHANGES": "Nenhuma alteracao enviada.",
+      "SAVE_SUCCESS": "Branding atualizado com sucesso.",
+      "SAVE_ERROR": "Nao foi possivel salvar o branding. Tente novamente."
+    },
+    "FIELDS": {
+      "LOGO": {
+        "TITLE": "Logo",
+        "HELPER": "Imagem usada no dashboard e login."
+      },
+      "LOGO_DARK": {
+        "TITLE": "Logo (Dark)",
+        "HELPER": "Versao usada em temas escuros."
+      },
+      "LOGO_THUMBNAIL": {
+        "TITLE": "Favicon",
+        "HELPER": "Usada como icone do navegador."
+      }
+    }
+  },
   "SIDEBAR_ITEMS": {
     "CHANGE_AVAILABILITY_STATUS": "Change",
     "CHANGE_ACCOUNTS": "Switch account",
@@ -328,6 +357,7 @@
     "INTEGRATIONS": "Integrations",
     "PROFILE_SETTINGS": "Profile Settings",
     "ACCOUNT_SETTINGS": "Account Settings",
+    "BRANDING": "Branding",
     "APPLICATIONS": "Applications",
     "LABELS": "Labels",
     "CUSTOM_ATTRIBUTES": "Custom Attributes",

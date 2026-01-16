@@ -1,5 +1,6 @@
 class DashboardController < ActionController::Base
   include SwitchLocale
+  include BrandingOverrides
 
   GLOBAL_CONFIG_KEYS = %w[
     LOGO
@@ -10,6 +11,8 @@ class DashboardController < ActionController::Base
     TERMS_URL
     BRAND_URL
     BRAND_NAME
+    HIDE_POWERED_BY
+    DYNAMIC_TITLE_FROM_DOMAIN
     PRIVACY_URL
     DISPLAY_MANIFEST
     CREATE_NEW_ACCOUNT_FROM_DASHBOARD
@@ -27,6 +30,7 @@ class DashboardController < ActionController::Base
   ].freeze
 
   before_action :set_application_pack
+  before_action :set_branding_account
   before_action :set_global_config
   before_action :set_dashboard_scripts
   around_action :switch_locale
@@ -44,7 +48,18 @@ class DashboardController < ActionController::Base
   end
 
   def set_global_config
-    @global_config = GlobalConfig.get(*GLOBAL_CONFIG_KEYS).merge(app_config)
+    config = GlobalConfig.get(*GLOBAL_CONFIG_KEYS).merge(app_config)
+    @global_config = apply_branding_overrides(config, request.host)
+  end
+
+  def set_branding_account
+    return unless current_user
+
+    path_account_id = request.path.match(%r{/app/accounts/(\d+)})&.captures&.first
+    account_id = params[:account_id] || path_account_id
+    return unless account_id
+
+    Current.account = current_user.accounts.find_by(id: account_id)
   end
 
   def set_dashboard_scripts

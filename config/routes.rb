@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  namespace :admin do
+    resource :branding, only: [:show, :update], controller: 'branding'
+  end
+  get '/branding/manifest.json', to: 'branding_manifest#show', as: 'branding_manifest'
   # AUTH STARTS
   mount_devise_token_auth_for 'User', at: 'auth', controllers: {
     confirmations: 'devise_overrides/confirmations',

@@ -18,9 +18,19 @@ By default, it renders:
   <meta charset="utf-8">
   <meta name="ROBOTS" content="NOODP">
   <meta name="viewport" content="initial-scale=1">
-  <title>
-    <%= content_for(:title) %> - <%= application_title %>
-  </title>
+  <% dynamic_title_enabled = GlobalConfig.get_value('DYNAMIC_TITLE_FROM_DOMAIN') %>
+  <% global_branding = GlobalConfig.get('LOGO_THUMBNAIL') %>
+  <% favicon_url = global_branding['LOGO_THUMBNAIL'].presence || '/favicon-32x32.png' %>
+  <% if dynamic_title_enabled.to_s == 'true' %>
+    <% raw_domain = request.host.to_s.gsub(/^www\./, '') %>
+    <% title_suffix = t('admin.branding.super_admin_title') %>
+    <% cleaned = raw_domain.presence || title_suffix %>
+    <title><%= "#{cleaned} - #{title_suffix}" %></title>
+  <% else %>
+    <title><%= t('admin.branding.super_admin_title') %></title>
+  <% end %>
+  <link rel="icon" type="image/x-icon" href="<%= favicon_url %>">
+  <link rel="shortcut icon" href="<%= favicon_url %>" type="image/x-icon">
   <%= render "stylesheet" %>
   <%= vite_client_tag %>
   <%= vite_javascript_tag 'superadmin' %>

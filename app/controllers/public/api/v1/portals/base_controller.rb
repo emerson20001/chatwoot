@@ -1,4 +1,5 @@
 class Public::Api::V1::Portals::BaseController < PublicController
+  include BrandingOverrides
   include SwitchLocale
 
   before_action :show_plain_layout
@@ -58,6 +59,8 @@ class Public::Api::V1::Portals::BaseController < PublicController
   end
 
   def set_global_config
-    @global_config = GlobalConfig.get('LOGO_THUMBNAIL', 'BRAND_NAME', 'BRAND_URL', 'INSTALLATION_NAME')
+    Current.account = portal.account
+    config = GlobalConfig.get('LOGO_THUMBNAIL', 'BRAND_NAME', 'BRAND_URL', 'INSTALLATION_NAME')
+    @global_config = apply_branding_overrides(config, request.host)
   end
 end

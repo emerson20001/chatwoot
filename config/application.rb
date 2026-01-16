@@ -3,6 +3,7 @@
 require_relative 'boot'
 
 require 'rails/all'
+require_relative '../lib/branding_host_middleware'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -46,6 +47,7 @@ module Chatwoot
     # rubocop:enable Rails/FilePath
     # Add enterprise views to the view paths
     config.paths['app/views'].unshift('enterprise/app/views')
+    config.middleware.use BrandingHostMiddleware
 
     # Load enterprise initializers alongside standard initializers
     enterprise_initializers = Rails.root.join('enterprise/config/initializers')

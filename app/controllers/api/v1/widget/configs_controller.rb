@@ -1,4 +1,5 @@
 class Api::V1::Widget::ConfigsController < Api::V1::Widget::BaseController
+  include BrandingOverrides
   before_action :set_global_config
 
   def create
@@ -9,13 +10,15 @@ class Api::V1::Widget::ConfigsController < Api::V1::Widget::BaseController
   private
 
   def set_global_config
-    @global_config = GlobalConfig.get(
+    config = GlobalConfig.get(
       'LOGO_THUMBNAIL',
       'BRAND_NAME',
       'WIDGET_BRAND_URL',
       'MAXIMUM_FILE_UPLOAD_SIZE',
-      'INSTALLATION_NAME'
+      'INSTALLATION_NAME',
+      'HIDE_POWERED_BY'
     )
+    @global_config = apply_branding_overrides(config, request.host)
   end
 
   def set_contact
