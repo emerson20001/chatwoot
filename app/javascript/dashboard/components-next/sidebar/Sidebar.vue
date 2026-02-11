@@ -34,7 +34,7 @@ const emit = defineEmits([
   'closeMobileSidebar',
 ]);
 
-const { accountScopedRoute, isOnChatwootCloud } = useAccount();
+const { accountScopedRoute, isOnChatwootCloud, currentAccount } = useAccount();
 const store = useStore();
 const searchShortcut = useKbd([`$mod`, 'k']);
 const { t } = useI18n();
@@ -126,6 +126,15 @@ const newReportRoutes = () => [
 ];
 
 const reportRoutes = computed(() => newReportRoutes());
+
+const customMenus = computed(() =>
+  (currentAccount.value?.settings?.custom_menus || []).filter(
+    menu => menu?.label?.trim() && menu?.link?.trim()
+  )
+);
+const customMenuTitle = computed(
+  () => currentAccount.value?.settings?.custom_menu_title?.trim() || ''
+);
 
 const menuItems = computed(() => {
   return [
@@ -473,6 +482,32 @@ const menuItems = computed(() => {
         },
       ],
     },
+    ...(customMenus.value.length === 1
+      ? [
+          {
+            name: 'Custom Menu',
+            label: customMenus.value[0].label,
+            icon: 'i-lucide-external-link',
+            activeOn: ['custom_menu_index'],
+            to: accountScopedRoute('custom_menu_index', { menuIndex: 0 }),
+          },
+        ]
+      : []),
+    ...(customMenus.value.length > 1
+      ? [
+          {
+            name: 'Custom Menu',
+            label: customMenuTitle.value || t('SIDEBAR.CUSTOM_MENU'),
+            icon: 'i-lucide-external-link',
+            children: customMenus.value.map((menu, index) => ({
+              name: `Custom Menu ${index}`,
+              label: menu.label,
+              activeOn: ['custom_menu_index'],
+              to: accountScopedRoute('custom_menu_index', { menuIndex: index }),
+            })),
+          },
+        ]
+      : []),
     {
       name: 'Settings',
       label: t('SIDEBAR.SETTINGS'),

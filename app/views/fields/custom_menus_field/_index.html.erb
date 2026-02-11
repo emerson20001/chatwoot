@@ -1,0 +1,5 @@
+<% if field.custom_menus.any? %>
+  <%= ([field.resource.custom_menu_title.presence] + field.custom_menus.map { |menu| menu['label'] }).compact.join(' - ') %>
+<% else %>
+  <span>-</span>
+<% end %>

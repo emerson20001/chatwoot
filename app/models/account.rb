@@ -87,6 +87,16 @@ class Account < ApplicationRecord
 
   store_accessor :settings, :audio_transcriptions, :auto_resolve_label, :conversation_required_attributes
   store_accessor :settings, :captain_models, :captain_features
+  store_accessor :settings, :custom_menus, :custom_menu_title
+
+  def custom_menus
+    normalize_custom_menus((settings || {})['custom_menus'])
+  end
+
+  def custom_menus=(value)
+    normalized = normalize_custom_menus(value)
+    self.settings = (settings || {}).merge('custom_menus' => normalized)
+  end
 
   def branding_settings
     ((settings || {})['branding'] || {}).with_indifferent_access
@@ -206,6 +216,30 @@ class Account < ApplicationRecord
 
   def notify_creation
     Rails.configuration.dispatcher.dispatch(ACCOUNT_CREATED, Time.zone.now, account: self)
+  end
+
+  def normalize_custom_menus(value)
+    data =
+      case value
+      when String
+        JSON.parse(value)
+      when Array
+        value
+      else
+        []
+      end
+
+    data.filter_map do |item|
+      next unless item.is_a?(Hash)
+
+      label = item['label'] || item[:label]
+      link = item['link'] || item[:link]
+      next if label.blank? || link.blank?
+
+      { 'label' => label.to_s.strip, 'link' => link.to_s.strip }
+    end
+  rescue JSON::ParserError
+    []
   end
 
   trigger.after(:insert).for_each(:row) do

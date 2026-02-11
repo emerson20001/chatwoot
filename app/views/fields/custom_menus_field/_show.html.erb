@@ -1,0 +1,10 @@
+<% if field.resource.custom_menu_title.present? %>
+  <div><strong>Title:</strong> <%= field.resource.custom_menu_title %></div>
+<% end %>
+<% if field.custom_menus.any? %>
+  <% field.custom_menus.each do |menu| %>
+    <div><strong><%= menu['label'] %></strong>: <%= menu['link'] %></div>
+  <% end %>
+<% else %>
+  <span>-</span>
+<% end %>

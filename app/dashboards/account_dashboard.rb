@@ -34,7 +34,8 @@ class AccountDashboard < Administrate::BaseDashboard
     locale: Field::Select.with_options(collection: LANGUAGES_CONFIG.map { |_x, y| y[:iso_639_1_code] }),
     status: Field::Select.with_options(collection: [%w[Active active], %w[Suspended suspended]]),
     account_users: Field::HasMany,
-    custom_attributes: Field::String
+    custom_attributes: Field::String,
+    custom_menus: CustomMenusField
   }.merge(enterprise_attribute_types).freeze
 
   # COLLECTION_ATTRIBUTES
@@ -68,6 +69,7 @@ class AccountDashboard < Administrate::BaseDashboard
     updated_at
     locale
     status
+    custom_menus
     conversations
     account_users
   ] + enterprise_show_page_attributes).freeze
@@ -87,6 +89,7 @@ class AccountDashboard < Administrate::BaseDashboard
     name
     locale
     status
+    custom_menus
   ] + enterprise_form_attributes).freeze
 
   # COLLECTION_FILTERS
@@ -117,7 +120,7 @@ class AccountDashboard < Administrate::BaseDashboard
   # to prevent an error from being raised (wrong number of arguments)
   # Reference: https://github.com/thoughtbot/administrate/pull/2356/files#diff-4e220b661b88f9a19ac527c50d6f1577ef6ab7b0bed2bfdf048e22e6bfa74a05R204
   def permitted_attributes(action)
-    attrs = super + [limits: {}]
+    attrs = super + [:custom_menu_title, { custom_menus: %i[label link] }, { limits: {} }]
 
     # Add manually_managed_features to permitted attributes only for Chatwoot Cloud
     attrs << { manually_managed_features: [] } if ChatwootApp.chatwoot_cloud?
