@@ -1,0 +1,6 @@
+<% if field.wordpress_blog.any? %>
+  <% blog = field.wordpress_blog %>
+  <%= [blog['blog_id'].presence, blog['name'].presence, blog['slug'].presence, blog['domain'].presence].compact.join(' - ') %>
+<% else %>
+  <span>-</span>
+<% end %>

@@ -1,0 +1,40 @@
+<div class="field-unit field-unit--wordpress-blog">
+  <%= f.label field.attribute, "WordPress Blog", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <% blog = field.wordpress_blog %>
+    <div>
+      <input
+        type="number"
+        min="1"
+        step="1"
+        name="<%= "#{f.object_name}[#{field.attribute}][blog_id]" %>"
+        value="<%= blog['blog_id'] %>"
+        placeholder="Blog ID"
+      />
+    </div>
+    <div>
+      <input
+        type="text"
+        name="<%= "#{f.object_name}[#{field.attribute}][domain]" %>"
+        value="<%= blog['domain'] %>"
+        placeholder="Domain"
+      />
+    </div>
+    <div>
+      <input
+        type="text"
+        name="<%= "#{f.object_name}[#{field.attribute}][name]" %>"
+        value="<%= blog['name'] %>"
+        placeholder="Name"
+      />
+    </div>
+    <div>
+      <input
+        type="text"
+        name="<%= "#{f.object_name}[#{field.attribute}][slug]" %>"
+        value="<%= blog['slug'] %>"
+        placeholder="Slug"
+      />
+    </div>
+  </div>
+</div>

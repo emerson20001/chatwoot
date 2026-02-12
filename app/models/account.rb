@@ -88,6 +88,7 @@ class Account < ApplicationRecord
   store_accessor :settings, :audio_transcriptions, :auto_resolve_label, :conversation_required_attributes
   store_accessor :settings, :captain_models, :captain_features
   store_accessor :settings, :custom_menus, :custom_menu_title
+  store_accessor :settings, :wordpress_blog
 
   def custom_menus
     normalize_custom_menus((settings || {})['custom_menus'])
