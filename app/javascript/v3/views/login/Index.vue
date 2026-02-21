@@ -84,6 +84,9 @@ export default {
   },
   computed: {
     ...mapGetters({ globalConfig: 'globalConfig/get' }),
+    hideBrandingForDomain() {
+      return Boolean(window.chatwootConfig.hideDefaultBranding);
+    },
     allowedLoginMethods() {
       return window.chatwootConfig.allowedLoginMethods || ['email'];
     },
@@ -224,12 +227,13 @@ export default {
   >
     <section class="max-w-5xl mx-auto">
       <img
+        v-if="!hideBrandingForDomain"
         :src="globalConfig.logo"
         :alt="globalConfig.installationName"
         class="block w-auto h-8 mx-auto dark:hidden"
       />
       <img
-        v-if="globalConfig.logoDark"
+        v-if="globalConfig.logoDark && !hideBrandingForDomain"
         :src="globalConfig.logoDark"
         :alt="globalConfig.installationName"
         class="hidden w-auto h-8 mx-auto dark:block"

@@ -29,6 +29,7 @@ class Account < ApplicationRecord
   include Featurable
   include CacheKeys
   include CaptainFeaturable
+  include AccountSettings
 
   SETTINGS_PARAMS_SCHEMA = {
     'type': 'object',
@@ -87,17 +88,8 @@ class Account < ApplicationRecord
 
   store_accessor :settings, :audio_transcriptions, :auto_resolve_label, :conversation_required_attributes
   store_accessor :settings, :captain_models, :captain_features
-
-  def branding_settings
-    ((settings || {})['branding'] || {}).with_indifferent_access
-  end
-
-  def update_branding_settings!(attrs)
-    merged = branding_settings.merge(attrs.stringify_keys)
-    new_settings = (settings || {}).dup
-    new_settings['branding'] = merged
-    update!(settings: new_settings)
-  end
+  store_accessor :settings, :custom_menus, :custom_menu_title
+  store_accessor :settings, :wordpress_blog
 
   has_many :account_users, dependent: :destroy_async
   has_many :agent_bot_inboxes, dependent: :destroy_async

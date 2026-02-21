@@ -26,6 +26,7 @@ import profile from './profile/profile.routes';
 import security from './security/security.routes';
 import captain from './captain/captain.routes';
 import branding from './branding/branding.routes';
+import CustomMenuPage from './customMenu/Index.vue';
 
 export default {
   routes: [
@@ -44,6 +45,14 @@ export default {
         }
 
         return { name: 'canned_list', params: to.params };
+      },
+    },
+    {
+      path: frontendURL('accounts/:accountId/custom-menu/:menuIndex'),
+      name: 'custom_menu_index',
+      component: CustomMenuPage,
+      meta: {
+        permissions: ['administrator', 'agent', 'custom_role'],
       },
     },
     ...account.routes,

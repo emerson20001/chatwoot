@@ -31,10 +31,14 @@ module BrandingConfigResolver
     account_specific = account_branding_value(key).presence
     default_value = default_branding_value(value)
 
-    return host_specific || account_specific || default_value unless key == 'LOGO_THUMBNAIL'
+    resolved = if key == 'LOGO_THUMBNAIL'
+                 domain_specific = domain_favicon_path(host_key).presence
+                 domain_specific || account_specific || host_specific || default_value
+               else
+                 account_specific || host_specific || default_value
+               end
 
-    domain_specific = domain_favicon_path(host_key).presence
-    domain_specific || account_specific || host_specific || default_value
+    uploads_branding_value(key, host_key, resolved)
   end
 
   def branding_host_key(host)
@@ -63,6 +67,45 @@ module BrandingConfigResolver
     return value unless value.is_a?(Hash)
 
     value['default'] || value.values.first
+  end
+
+  def uploads_branding_value(key, host_key, resolved)
+    candidate = uploads_branding_path(resolved)
+    return candidate if candidate.present?
+
+    case key
+    when 'LOGO'
+      account_logo_path('-light') || any_logo_path('-light')
+    when 'LOGO_DARK'
+      account_logo_path('-dark') || any_logo_path('-dark')
+    when 'LOGO_THUMBNAIL'
+      domain_favicon_path(host_key) || account_logo_path('-favico') || any_logo_path('-favico')
+    end
+  end
+
+  def uploads_branding_path(value)
+    return value if value.is_a?(String) && value.include?('/uploads/branding/')
+
+    return unless value.is_a?(Hash)
+
+    value.values.find { |entry| entry.is_a?(String) && entry.include?('/uploads/branding/') }
+  end
+
+  def account_logo_path(suffix)
+    account = Current.account
+    return if account.blank?
+
+    uploads_branding_path_from_pattern("account-#{account.id}#{suffix}.*")
+  end
+
+  def any_logo_path(suffix)
+    uploads_branding_path_from_pattern("account-*#{suffix}.*") ||
+      uploads_branding_path_from_pattern("*#{suffix}.*")
+  end
+
+  def uploads_branding_path_from_pattern(pattern)
+    file = Dir.glob(Rails.public_path.join('uploads', 'branding', pattern)).first
+    file&.sub(Rails.public_path.to_s, '')
   end
 
   def domain_favicon_path(host_key)

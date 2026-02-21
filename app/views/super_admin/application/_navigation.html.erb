@@ -22,7 +22,11 @@ as defined by the routes in the `admin/` namespace
 <div class="border-slate-100 border-r w-56 flex-shrink-0 justify-between h-full flex flex-col" role="navigation">
   <div>
     <div class="flex mx-4 mb-4 border-slate-100 border-b py-6">
-      <%= link_to image_tag('/brand-assets/logo_thumbnail.svg', alt: 'Chatwoot Admin Dashboard', class: 'h-10'), super_admin_root_url %>
+      <% branding = GlobalConfig.get('LOGO_THUMBNAIL') %>
+      <% logo_thumbnail = branding['LOGO_THUMBNAIL'] %>
+      <% if logo_thumbnail.present? && logo_thumbnail.include?('/uploads/branding/') %>
+        <%= link_to image_tag(logo_thumbnail, alt: 'Admin Dashboard', class: 'h-10'), super_admin_root_url %>
+      <% end %>
       <div class="flex flex-col ml-3">
         <div class="text-sm">Chatwoot <%= Chatwoot.config[:version] %></div>
         <div class="text-xs text-slate-700 mt-0.5">Super Admin Console</div>

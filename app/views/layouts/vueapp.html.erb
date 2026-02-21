@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <% host = request.host.to_s.downcase %>
+    <% branded_domain = host.start_with?('localhost') || host.include?('centraldeatendimento') %>
     <% dynamic_title_enabled = @global_config['DYNAMIC_TITLE_FROM_DOMAIN'] %>
-    <% installation_name = if dynamic_title_enabled.to_s == 'true'
-      raw_domain = request.host.to_s.gsub(/^www\./, '')
-      suffix = t('admin.branding.dynamic_title_suffix')
-      fallback = t('admin.branding.dynamic_title_default')
-      raw_domain.present? ? "#{raw_domain} - #{suffix}" : fallback
+    <% installation_name = if branded_domain
+      'Central de Atendimento'
+      elsif dynamic_title_enabled.to_s == 'true'
+        raw_domain = host.gsub(/^www\./, '')
+        suffix = t('admin.branding.dynamic_title_suffix')
+        fallback = t('admin.branding.dynamic_title_default')
+        raw_domain.present? ? "#{raw_domain} - #{suffix}" : fallback
       else
         @global_config['INSTALLATION_NAME']
-      end 
+      end
     %>
     <title><%= installation_name %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0"/>
-    <% favicon_url = @global_config['LOGO_THUMBNAIL'].presence || '/favicon-32x32.png' %>
-    <% icon_path = ->(basename) { BrandingConfigResolver.icon_path(favicon_url, basename) } %>
-    <link rel="icon" type="image/x-icon" href="<%= favicon_url %>">
-    <link rel="shortcut icon" href="<%= favicon_url %>" type="image/x-icon">
-    <% if @global_config['DISPLAY_MANIFEST'] %>
+    <% favicon_url = branded_domain ? nil : @global_config['LOGO_THUMBNAIL'] %>
+    <% if favicon_url.present? %>
+      <% icon_path = ->(basename) { BrandingConfigResolver.icon_path(favicon_url, basename) } %>
+      <link rel="icon" type="image/x-icon" href="<%= favicon_url %>">
+      <link rel="shortcut icon" href="<%= favicon_url %>" type="image/x-icon">
+    <% end %>
+    <% if @global_config['DISPLAY_MANIFEST'] && favicon_url.present? %>
       <meta name="msapplication-TileColor" content="#1f93ff">
       <meta name="msapplication-TileImage" content="<%= icon_path.call('ms-icon-144x144') %>">
       <meta name="theme-color" content="#1f93ff">
@@ -41,10 +47,13 @@
       <% manifest_params = Current.account&.id ? { account_id: Current.account.id } : {} %>
       <link rel="manifest" href="<%= branding_manifest_path(manifest_params) %>">
     <% end %>
-    <link rel="icon" type="image/png" sizes="512x512" href="<%= favicon_url %>">
+    <% if favicon_url.present? %>
+      <link rel="icon" type="image/png" sizes="512x512" href="<%= favicon_url %>">
+    <% end %>
     <%= csrf_meta_tags %>
     <script>
       window.chatwootConfig = {
+        hideDefaultBranding: <%= branded_domain.to_json %>,
         hostURL: '<%= ENV.fetch('FRONTEND_URL', '') %>',
         helpCenterURL: '<%= ENV.fetch('HELPCENTER_URL', '') %>',
         fbAppId: '<%= @global_config['FB_APP_ID'] %>',

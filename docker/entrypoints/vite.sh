@@ -2,10 +2,12 @@
 set -x
 
 rm -rf /app/tmp/pids/server.pid
-rm -rf /app/tmp/cache/*
 
-pnpm store prune
-pnpm install --force
+# Avoid expensive reinstall on every container restart.
+# Install dependencies only when node_modules is missing.
+if [ ! -d "/app/node_modules/.pnpm" ]; then
+  pnpm install --frozen-lockfile
+fi
 
 echo "Ready to run Vite development server."
 

@@ -4,7 +4,6 @@ set -x
 
 # Remove a potentially pre-existing server.pid for Rails.
 rm -rf /app/tmp/pids/server.pid
-rm -rf /app/tmp/cache/*
 
 echo "Waiting for postgres to become ready...."
 
@@ -20,15 +19,13 @@ done
 
 echo "Database ready to accept connections."
 
-#install missing gems for local dev as we are using base image compiled for production
-bundle install
+# Install gems only when needed to keep restart time low.
+bundle check || bundle install
 
-BUNDLE="bundle check"
-
-until $BUNDLE
-do
-  sleep 2;
-done
+# Keep local Docker resilient: create/migrate DB on every boot if needed.
+if [ "${AUTO_PREPARE_DB:-true}" = "true" ]; then
+  bundle exec rails db:version >/dev/null 2>&1 || bundle exec rails db:chatwoot_prepare
+fi
 
 # Execute the main process of the container
 exec "$@"

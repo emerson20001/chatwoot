@@ -44,6 +44,22 @@ if (isLibraryMode) {
 
 export default defineConfig({
   plugins: plugins,
+  server: {
+    host: '0.0.0.0',
+    port: 3036,
+    strictPort: true,
+    allowedHosts: true,
+    hmr: {
+      protocol: process.env.VITE_HMR_PROTOCOL || 'ws',
+      host: process.env.VITE_HMR_HOST || 'localhost',
+      port: Number(process.env.VITE_HMR_PORT || 3036),
+      clientPort: Number(process.env.VITE_HMR_CLIENT_PORT || process.env.VITE_HMR_PORT || 3036),
+    },
+    watch: {
+      usePolling: process.env.VITE_USE_POLLING === 'true',
+      interval: Number(process.env.VITE_POLLING_INTERVAL || 120),
+    },
+  },
   build: {
     rollupOptions: {
       output: {

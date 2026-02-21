@@ -55,6 +55,9 @@ const validations = {
 const v$ = useVuelidate(validations, { credentials });
 
 const globalConfig = computed(() => store.getters['globalConfig/get']);
+const hideBrandingForDomain = computed(() => {
+  return Boolean(window.chatwootConfig.hideDefaultBranding);
+});
 const csrfToken = ref('');
 
 onMounted(async () => {
@@ -73,12 +76,13 @@ onMounted(async () => {
   >
     <section class="max-w-5xl mx-auto">
       <img
+        v-if="!hideBrandingForDomain"
         :src="globalConfig.logo"
         :alt="globalConfig.installationName"
         class="block w-auto h-8 mx-auto dark:hidden"
       />
       <img
-        v-if="globalConfig.logoDark"
+        v-if="globalConfig.logoDark && !hideBrandingForDomain"
         :src="globalConfig.logoDark"
         :alt="globalConfig.installationName"
         class="hidden w-auto h-8 mx-auto dark:block"

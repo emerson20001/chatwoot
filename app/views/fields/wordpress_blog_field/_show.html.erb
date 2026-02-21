@@ -1,0 +1,17 @@
+<% if field.wordpress_blog.any? %>
+  <% blog = field.wordpress_blog %>
+  <% if blog['blog_id'].present? %>
+    <div><strong>Blog ID:</strong> <%= blog['blog_id'] %></div>
+  <% end %>
+  <% if blog['domain'].present? %>
+    <div><strong>Domain:</strong> <%= blog['domain'] %></div>
+  <% end %>
+  <% if blog['name'].present? %>
+    <div><strong>Name:</strong> <%= blog['name'] %></div>
+  <% end %>
+  <% if blog['slug'].present? %>
+    <div><strong>Slug:</strong> <%= blog['slug'] %></div>
+  <% end %>
+<% else %>
+  <span>-</span>
+<% end %>

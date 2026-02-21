@@ -1,5 +1,15 @@
 # Chatwoot Development Guidelines
 
+## Local Runbook (Custom Repo)
+
+- Before local environment changes, read `README_LOCAL_DEV.md`.
+- Prefer Docker helper commands from `Makefile`:
+  - `make docker_up`
+  - `make docker_restart`
+  - `make docker_logs`
+  - `make docker_down`
+- For Ruby CLI, ensure `rbenv` is initialized: `eval "$(rbenv init -)"`.
+
 ## Build / Test / Lint
 
 - **Setup**: `bundle install && pnpm install`

@@ -34,7 +34,7 @@ const emit = defineEmits([
   'closeMobileSidebar',
 ]);
 
-const { accountScopedRoute, isOnChatwootCloud } = useAccount();
+const { accountScopedRoute, isOnChatwootCloud, currentAccount } = useAccount();
 const store = useStore();
 const searchShortcut = useKbd([`$mod`, 'k']);
 const { t } = useI18n();
@@ -66,10 +66,12 @@ provideSidebarContext({
 const inboxes = useMapGetter('inboxes/getInboxes');
 const labels = useMapGetter('labels/getLabelsOnSidebar');
 const teams = useMapGetter('teams/getMyTeams');
+const currentUserRole = useMapGetter('getCurrentRole');
 const contactCustomViews = useMapGetter('customViews/getContactCustomViews');
 const conversationCustomViews = useMapGetter(
   'customViews/getConversationCustomViews'
 );
+const hiddenMenusForAgent = ['Captain', 'Portals', 'Settings'];
 
 onMounted(() => {
   store.dispatch('labels/get');
@@ -127,8 +129,17 @@ const newReportRoutes = () => [
 
 const reportRoutes = computed(() => newReportRoutes());
 
+const customMenus = computed(() =>
+  (currentAccount.value?.settings?.custom_menus || []).filter(
+    menu => menu?.label?.trim() && menu?.link?.trim()
+  )
+);
+const customMenuTitle = computed(
+  () => currentAccount.value?.settings?.custom_menu_title?.trim() || ''
+);
+
 const menuItems = computed(() => {
-  return [
+  const items = [
     {
       name: 'Inbox',
       label: t('SIDEBAR.INBOX'),
@@ -473,6 +484,32 @@ const menuItems = computed(() => {
         },
       ],
     },
+    ...(customMenus.value.length === 1
+      ? [
+          {
+            name: 'Custom Menu',
+            label: customMenus.value[0].label,
+            icon: 'i-lucide-external-link',
+            activeOn: ['custom_menu_index'],
+            to: accountScopedRoute('custom_menu_index', { menuIndex: 0 }),
+          },
+        ]
+      : []),
+    ...(customMenus.value.length > 1
+      ? [
+          {
+            name: 'Custom Menu',
+            label: customMenuTitle.value || t('SIDEBAR.CUSTOM_MENU'),
+            icon: 'i-lucide-external-link',
+            children: customMenus.value.map((menu, index) => ({
+              name: `Custom Menu ${index}`,
+              label: menu.label,
+              activeOn: ['custom_menu_index'],
+              to: accountScopedRoute('custom_menu_index', { menuIndex: index }),
+            })),
+          },
+        ]
+      : []),
     {
       name: 'Settings',
       label: t('SIDEBAR.SETTINGS'),
@@ -595,6 +632,12 @@ const menuItems = computed(() => {
       ],
     },
   ];
+
+  if (currentUserRole.value === 'agent') {
+    return items.filter(item => !hiddenMenusForAgent.includes(item.name));
+  }
+
+  return items;
 });
 </script>
 
@@ -667,7 +710,11 @@ const menuItems = computed(() => {
         class="pointer-events-none absolute inset-x-0 -top-[31px] h-8 bg-gradient-to-t from-n-solid-2 to-transparent"
       />
       <SidebarChangelogCard
-        v-if="isOnChatwootCloud && !isACustomBrandedInstance"
+        v-if="
+          isOnChatwootCloud &&
+          !isACustomBrandedInstance &&
+          currentUserRole !== 'agent'
+        "
       />
       <div
         class="p-1 flex-shrink-0 flex w-full justify-between z-10 gap-2 items-center border-t border-n-weak shadow-[0px_-2px_4px_0px_rgba(27,28,29,0.02)]"

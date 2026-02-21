@@ -20,7 +20,7 @@ By default, it renders:
   <meta name="viewport" content="initial-scale=1">
   <% dynamic_title_enabled = GlobalConfig.get_value('DYNAMIC_TITLE_FROM_DOMAIN') %>
   <% global_branding = GlobalConfig.get('LOGO_THUMBNAIL') %>
-  <% favicon_url = global_branding['LOGO_THUMBNAIL'].presence || '/favicon-32x32.png' %>
+  <% favicon_url = global_branding['LOGO_THUMBNAIL'] %>
   <% if dynamic_title_enabled.to_s == 'true' %>
     <% raw_domain = request.host.to_s.gsub(/^www\./, '') %>
     <% title_suffix = t('admin.branding.super_admin_title') %>
@@ -29,8 +29,10 @@ By default, it renders:
   <% else %>
     <title><%= t('admin.branding.super_admin_title') %></title>
   <% end %>
-  <link rel="icon" type="image/x-icon" href="<%= favicon_url %>">
-  <link rel="shortcut icon" href="<%= favicon_url %>" type="image/x-icon">
+  <% if favicon_url.present? %>
+    <link rel="icon" type="image/x-icon" href="<%= favicon_url %>">
+    <link rel="shortcut icon" href="<%= favicon_url %>" type="image/x-icon">
+  <% end %>
   <%= render "stylesheet" %>
   <%= vite_client_tag %>
   <%= vite_javascript_tag 'superadmin' %>

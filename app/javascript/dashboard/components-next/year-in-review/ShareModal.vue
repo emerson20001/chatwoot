@@ -94,18 +94,22 @@ const generateImage = async () => {
       img.height + borderSize + 35
     );
 
-    const logo = new Image();
-    logo.src = '/brand-assets/logo.svg';
-    await new Promise(resolve => {
-      logo.onload = resolve;
-    });
+    const brandingLogoUrl =
+      window?.globalConfig?.LOGO || window?.globalConfig?.LOGO_THUMBNAIL;
+    if (brandingLogoUrl && brandingLogoUrl.includes('/uploads/branding/')) {
+      const logo = new Image();
+      logo.src = brandingLogoUrl;
+      await new Promise(resolve => {
+        logo.onload = resolve;
+      });
 
-    const logoHeight = 30;
-    const logoWidth = (logo.width / logo.height) * logoHeight;
-    const logoX = finalCanvas.width - borderSize - logoWidth;
-    const logoY = img.height + borderSize + 15;
+      const logoHeight = 30;
+      const logoWidth = (logo.width / logo.height) * logoHeight;
+      const logoX = finalCanvas.width - borderSize - logoWidth;
+      const logoY = img.height + borderSize + 15;
 
-    ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+      ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+    }
 
     shareImageUrl.value = finalCanvas.toDataURL('image/png');
   } catch (err) {

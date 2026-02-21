@@ -1,0 +1,76 @@
+<div class="field-unit field-unit--custom-menus">
+  <%= f.label field.attribute, "Custom Menu", class: "field-unit__label" %>
+  <div class="field-unit__field">
+    <div style="margin-bottom: 8px;">
+      <input
+        type="text"
+        name="<%= "#{f.object_name}[custom_menu_title]" %>"
+        value="<%= f.object.custom_menu_title %>"
+        placeholder="Custom menu title"
+      />
+    </div>
+    <% container_id = "#{field.attribute}-rows-#{SecureRandom.hex(4)}" %>
+    <div id="<%= container_id %>">
+      <% field.custom_menus.each do |menu| %>
+        <div data-custom-menu-row style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+          <input
+            type="text"
+            name="<%= "#{f.object_name}[#{field.attribute}][][label]" %>"
+            value="<%= menu['label'] %>"
+            placeholder="Menu name"
+          />
+          <input
+            type="url"
+            name="<%= "#{f.object_name}[#{field.attribute}][][link]" %>"
+            value="<%= menu['link'] %>"
+            placeholder="https://example.com"
+          />
+          <button type="button" data-add-custom-menu>Add New</button>
+          <button type="button" data-remove-custom-menu style="background: #dc2626; color: #ffffff;">Remove</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const container = document.getElementById('<%= container_id %>');
+    if (!container || container.dataset.initialized === 'true') return;
+
+    const buildRow = () => {
+      const row = document.createElement('div');
+      row.setAttribute('data-custom-menu-row', '');
+      row.style.display = 'flex';
+      row.style.gap = '8px';
+      row.style.marginBottom = '8px';
+      row.style.alignItems = 'center';
+      row.innerHTML = `
+        <input type="text" name="<%= "#{f.object_name}[#{field.attribute}][][label]" %>" placeholder="Menu name" />
+        <input type="url" name="<%= "#{f.object_name}[#{field.attribute}][][link]" %>" placeholder="https://example.com" />
+        <button type="button" data-add-custom-menu>Add New</button>
+        <button type="button" data-remove-custom-menu style="background: #dc2626; color: #ffffff;">Remove</button>
+      `;
+      return row;
+    };
+
+    container.addEventListener('click', function(event) {
+      if (event.target.matches('[data-add-custom-menu]')) {
+        container.appendChild(buildRow());
+        return;
+      }
+
+      if (!event.target.matches('[data-remove-custom-menu]')) return;
+      const shouldRemove = window.confirm('Confirma remover este menu?');
+      if (!shouldRemove) return;
+      const row = event.target.closest('[data-custom-menu-row]');
+      if (row) row.remove();
+    });
+
+    if (!container.querySelector('[data-custom-menu-row]')) {
+      container.appendChild(buildRow());
+    }
+
+    container.dataset.initialized = 'true';
+  })();
+</script>

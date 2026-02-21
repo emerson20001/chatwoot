@@ -24,6 +24,7 @@ defineOptions({
 const { t } = useI18n();
 
 const currentUser = useMapGetter('getCurrentUser');
+const currentUserRole = useMapGetter('getCurrentRole');
 const currentUserAvailability = useMapGetter('getCurrentUserAvailability');
 const accountId = useMapGetter('getCurrentAccountId');
 const globalConfig = useMapGetter('globalConfig/get');
@@ -78,7 +79,7 @@ const menuItems = computed(() => {
       },
     },
     {
-      show: true,
+      show: currentUserRole.value !== 'agent',
       showOnCustomBrandedInstance: false,
       label: t('SIDEBAR_ITEMS.DOCS'),
       icon: 'i-lucide-book',
@@ -87,7 +88,7 @@ const menuItems = computed(() => {
       target: '_blank',
     },
     {
-      show: true,
+      show: currentUserRole.value !== 'agent',
       showOnCustomBrandedInstance: false,
       label: t('SIDEBAR_ITEMS.CHANGELOG'),
       icon: 'i-lucide-scroll-text',

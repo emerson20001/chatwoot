@@ -95,11 +95,20 @@ export default {
   computed: {
     ...mapGetters({
       currentUser: 'getCurrentUser',
+      currentUserRole: 'getCurrentRole',
       currentUserId: 'getCurrentUserID',
       globalConfig: 'globalConfig/get',
     }),
     isMfaEnabled() {
       return parseBoolean(window.chatwootConfig?.isMfaEnabled);
+    },
+    interfaceSectionDescription() {
+      const note = this.$t('PROFILE_SETTINGS.FORM.INTERFACE_SECTION.NOTE');
+      const customNoteForAgent = note.replace(/\sdo\sChatwoot\.$/, '.');
+
+      return this.replaceInstallationName(
+        this.currentUserRole === 'agent' ? customNoteForAgent : note
+      );
     },
   },
   mounted() {
@@ -224,11 +233,7 @@ export default {
     </div>
     <FormSection
       :title="$t('PROFILE_SETTINGS.FORM.INTERFACE_SECTION.TITLE')"
-      :description="
-        replaceInstallationName(
-          $t('PROFILE_SETTINGS.FORM.INTERFACE_SECTION.NOTE')
-        )
-      "
+      :description="interfaceSectionDescription"
     >
       <FontSize
         :value="currentFontSize"

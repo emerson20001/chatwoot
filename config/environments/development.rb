@@ -43,12 +43,12 @@ Rails.application.configure do
   config.active_record.migration_error = :page_load
 
   # Highlight code that triggered database queries in logs.
-  config.active_record.verbose_query_logs = true
+  config.active_record.verbose_query_logs = ENV['VERBOSE_QUERY_LOGS'] == 'true'
 
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
-  config.assets.debug = true
+  config.assets.debug = ENV['ASSETS_DEBUG'] == 'true'
 
   # Suppress logger output for asset requests.
   config.assets.quiet = true
@@ -81,8 +81,9 @@ Rails.application.configure do
 
   # Bullet configuration to fix the N+1 queries
   config.after_initialize do
-    Bullet.enable = true
-    Bullet.bullet_logger = true
-    Bullet.rails_logger = true
+    bullet_enabled = ENV['ENABLE_BULLET'] == 'true'
+    Bullet.enable = bullet_enabled
+    Bullet.bullet_logger = bullet_enabled
+    Bullet.rails_logger = bullet_enabled
   end
 end

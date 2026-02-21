@@ -59,4 +59,19 @@ debug_worker:
 docker: 
 	docker build -t $(APP_NAME) -f ./docker/Dockerfile .
 
-.PHONY: setup db_create db_migrate db_seed db_reset db console server burn docker run force_run force_run_tunnel debug debug_worker
+docker_up:
+	docker compose up -d --no-build --remove-orphans
+
+docker_down:
+	docker compose down
+
+docker_restart:
+	docker compose restart rails vite sidekiq
+
+docker_logs:
+	docker compose logs -f --tail=200 rails vite sidekiq
+
+docker_ps:
+	docker compose ps
+
+.PHONY: setup db_create db_migrate db_seed db_reset db console server burn docker run force_run force_run_tunnel debug debug_worker docker_up docker_down docker_restart docker_logs docker_ps

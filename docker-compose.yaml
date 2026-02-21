@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   base: &base
     build:
@@ -32,12 +30,21 @@ services:
       - redis
       - vite
       - mailhog
-      - sidekiq
     ports:
       - 3000:3000
+    restart: unless-stopped
     env_file: .env
     environment:
-      - VITE_DEV_SERVER_HOST=vite
+      - VITE_RUBY_HOST=vite
+      - VITE_RUBY_PORT=3036
+      - VITE_DEV_SERVER_HOST=localhost
+      - VITE_RUBY_AUTO_BUILD=false
+      - AUTO_PREPARE_DB=true
+      - POSTGRES_DATABASE=chatwoot_dev
+      - ENABLE_BULLET=false
+      - VERBOSE_QUERY_LOGS=false
+      - ASSETS_DEBUG=false
+      - LOG_LEVEL=info
       - NODE_ENV=development
       - RAILS_ENV=development
     entrypoint: docker/entrypoints/rails.sh
@@ -53,10 +60,13 @@ services:
       - cache:/app/tmp/cache
       - bundle:/usr/local/bundle
     depends_on:
+      - rails
       - postgres
       - redis
       - mailhog
+    restart: unless-stopped
     environment:
+      - POSTGRES_DATABASE=chatwoot_dev
       - NODE_ENV=development
       - RAILS_ENV=development
     command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
@@ -75,24 +85,35 @@ services:
       - bundle:/usr/local/bundle
     ports:
       - "3036:3036" # Vite dev server
+    restart: unless-stopped
     environment:
+      - VITE_RUBY_HOST=0.0.0.0
+      - VITE_RUBY_PORT=3036
       - VITE_DEV_SERVER_HOST=0.0.0.0
+      - VITE_HMR_HOST=localhost
+      - VITE_HMR_PROTOCOL=ws
+      - VITE_HMR_PORT=3036
+      - VITE_HMR_CLIENT_PORT=3036
+      - VITE_USE_POLLING=true
+      - VITE_POLLING_INTERVAL=60
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=60
       - NODE_ENV=development
       - RAILS_ENV=development
     entrypoint: docker/entrypoints/vite.sh
     command: bin/vite dev
 
   postgres:
-    image: pgvector/pgvector:pg16
+    image: pgvector/pgvector:pg17
     restart: always
     ports:
       - '5432:5432'
     volumes:
       - postgres:/data/postgres
     environment:
-      - POSTGRES_DB=chatwoot
+      - POSTGRES_DB=chatwoot_dev
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   redis:
     image: redis:alpine
