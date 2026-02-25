@@ -1,3 +1,5 @@
+name: chatwoot
+
 services:
   base: &base
     build:
@@ -109,7 +111,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - postgres:/data/postgres
+      - postgres_data:/data/postgres
     environment:
       - POSTGRES_DB=chatwoot_dev
       - POSTGRES_USER=postgres
@@ -132,9 +134,16 @@ services:
       - 8025:8025
 
 volumes:
-  postgres:
+  postgres_data:
+    external: true
+    name: chatwoot_postgres_data
   redis:
   packs:
   node_modules:
   cache:
   bundle:
+
+networks:
+  default:
+    external: true
+    name: shared_local_net

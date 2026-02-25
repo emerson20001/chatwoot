@@ -234,6 +234,7 @@
     "UPLOAD_LABEL": "Upload",
     "CUSTOM_URL_LABEL": "URL personalizada",
     "CUSTOM_URL_PLACEHOLDER": "https://cdn.suaempresa.com/logo.png",
+    "REMOVE_BUTTON": "Remover imagem atual",
     "SAVE_BUTTON": "Salvar alteracoes",
     "ALERTS": {
       "LOAD_ERROR": "Nao foi possivel carregar o branding. Tente novamente.",

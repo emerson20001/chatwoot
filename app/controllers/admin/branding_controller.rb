@@ -87,7 +87,11 @@ class Admin::BrandingController < ApplicationController
   def set_configs
     @account_branding = current_branding_settings
     @resolved_branding = BRANDING_CONFIGS.each_with_object({}) do |(key, config_name), memo|
-      memo[key] = @account_branding[key.to_s].presence || installation_branding_default(config_name)
+      memo[key] = if @account_branding.key?(key.to_s)
+                    @account_branding[key.to_s]
+                  else
+                    installation_branding_default(config_name)
+                  end
     end
   end
 
@@ -104,18 +108,24 @@ class Admin::BrandingController < ApplicationController
 
   def branding_params
     params.fetch(:branding, {}).permit(
-      logo: %i[url file],
-      logo_dark: %i[url file],
-      logo_thumbnail: %i[url file]
+      logo: %i[url file remove],
+      logo_dark: %i[url file remove],
+      logo_thumbnail: %i[url file remove]
     )
   end
 
   def processed_value(field_key, attributes)
+    return :remove if remove_requested?(attributes)
+
     if attributes[:file].present?
       store_upload(field_key, attributes[:file])
     else
       attributes[:url].presence
     end
+  end
+
+  def remove_requested?(attributes)
+    ActiveModel::Type::Boolean.new.cast(attributes[:remove])
   end
 
   def storage_prefix
@@ -257,6 +267,11 @@ class Admin::BrandingController < ApplicationController
       next unless BRANDING_CONFIGS[key.to_sym]
 
       new_value = processed_value(key, attributes)
+      if new_value == :remove
+        persist_branding_value(key, nil)
+        applied = true
+        next
+      end
       next if new_value.blank?
 
       persist_branding_value(key, new_value)

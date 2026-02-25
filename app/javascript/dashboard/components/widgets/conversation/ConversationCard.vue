@@ -234,17 +234,21 @@ const deleteConversation = () => {
 
 <template>
   <div
-    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 border-t-0 border-b-0 border-l-0 border-r-0 border-transparent border-solid cursor-pointer conversation hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3 group"
+    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 border-t-0 border-b-0 border-l-0 border-r-0 border-transparent border-solid cursor-pointer conversation transition-colors hover:bg-n-alpha-1 dark:hover:bg-n-alpha-4 group"
     :class="{
-      'active animate-card-select bg-n-alpha-1 dark:bg-n-alpha-3 border-n-weak':
+      'active animate-card-select bg-n-alpha-2 dark:bg-n-alpha-5':
         isActiveChat,
       'bg-n-slate-2 dark:bg-n-slate-3': selected,
-      'px-0': compact,
-      'px-3': !compact,
+      'px-0': true,
+      'ltr:pl-3 rtl:pr-3': true,
     }"
     @click="onCardClick"
     @contextmenu="openContextMenu($event)"
   >
+    <span
+      v-if="isActiveChat"
+      class="absolute ltr:left-0 rtl:right-0 top-0 bottom-0 w-1 rounded-full bg-n-brand"
+    />
     <div
       class="relative"
       @mouseenter="onThumbnailHover"
@@ -279,7 +283,7 @@ const deleteConversation = () => {
       </Avatar>
     </div>
     <div
-      class="px-0 py-3 border-b group-hover:border-transparent flex-1 border-n-slate-3 min-w-0"
+      class="px-0 py-2.5 border-b border-n-weak group-hover:border-transparent flex-1 min-w-0"
     >
       <div
         v-if="showMetaSection"
@@ -342,17 +346,17 @@ const deleteConversation = () => {
         </span>
       </p>
       <div
-        class="absolute flex flex-col ltr:right-3 rtl:left-3"
+        class="absolute flex flex-col ltr:right-4 rtl:left-4"
         :class="showMetaSection ? 'top-8' : 'top-4'"
       >
-        <span class="ml-auto font-normal leading-4 text-xxs">
+        <span class="ml-auto font-normal leading-4 text-xxs text-n-slate-11">
           <TimeAgo
             :last-activity-timestamp="chat.timestamp"
             :created-at-timestamp="chat.created_at"
           />
         </span>
         <span
-          class="shadow-lg rounded-full text-xxs font-semibold h-4 leading-4 ltr:ml-auto rtl:mr-auto mt-1 min-w-[1rem] px-1 py-0 text-center text-white bg-n-teal-9"
+          class="shadow-lg rounded-full text-xxs font-semibold h-4 leading-4 ltr:ml-auto rtl:mr-auto mt-1 min-w-[1rem] px-1.5 py-0 text-center text-white bg-n-teal-9"
           :class="hasUnread ? 'block' : 'hidden'"
         >
           {{ unreadCount > 9 ? '9+' : unreadCount }}

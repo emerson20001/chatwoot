@@ -37,7 +37,7 @@ const emit = defineEmits([
 const { accountScopedRoute, isOnChatwootCloud, currentAccount } = useAccount();
 const store = useStore();
 const searchShortcut = useKbd([`$mod`, 'k']);
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const isACustomBrandedInstance = useMapGetter(
   'globalConfig/isACustomBrandedInstance'
@@ -54,6 +54,18 @@ const toggleShortcutModalFn = show => {
 useSidebarKeyboardShortcuts(toggleShortcutModalFn);
 
 const expandedItem = ref(null);
+const isCollapsed = ref(false);
+
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value;
+};
+
+const searchPlaceholder = computed(() => {
+  if (String(locale.value || '').startsWith('pt')) {
+    return 'Buscar..';
+  }
+  return t('COMBOBOX.SEARCH_PLACEHOLDER');
+});
 
 const setExpandedItem = name => {
   expandedItem.value = expandedItem.value === name ? null : name;
@@ -61,17 +73,44 @@ const setExpandedItem = name => {
 provideSidebarContext({
   expandedItem,
   setExpandedItem,
+  isCollapsed,
 });
 
 const inboxes = useMapGetter('inboxes/getInboxes');
 const labels = useMapGetter('labels/getLabelsOnSidebar');
 const teams = useMapGetter('teams/getMyTeams');
 const currentUserRole = useMapGetter('getCurrentRole');
+const currentUser = useMapGetter('getCurrentUser');
 const contactCustomViews = useMapGetter('customViews/getContactCustomViews');
 const conversationCustomViews = useMapGetter(
   'customViews/getConversationCustomViews'
 );
 const hiddenMenusForAgent = ['Captain', 'Portals', 'Settings'];
+const hiddenMenusForAdministrator = ['Captain', 'Portals'];
+const hiddenSettingsMenusForNonSuperAdmin = [
+  'Settings Inboxes',
+  'Settings Custom Attributes',
+  'Settings Agent Bots',
+  'Settings Integrations',
+  'Settings Audit Logs',
+  'Settings Custom Roles',
+  'Settings Sla',
+  'Settings Security',
+];
+const isSuperAdmin = computed(() => currentUser.value?.type === 'SuperAdmin');
+const currentHostname = computed(() =>
+  String(globalThis?.location?.hostname || '').toLowerCase()
+);
+const isLocalOrCentralDomain = computed(() => {
+  return (
+    currentHostname.value === 'localhost' ||
+    currentHostname.value.includes('centraldeatendimento')
+  );
+});
+const canSeeBrandingMenu = computed(() => {
+  if (isSuperAdmin.value) return true;
+  return currentUserRole.value === 'administrator' && !isLocalOrCentralDomain.value;
+});
 
 onMounted(() => {
   store.dispatch('labels/get');
@@ -633,11 +672,38 @@ const menuItems = computed(() => {
     },
   ];
 
+  const itemsWithRestrictedSettings = items.map(item => {
+    if (item.name !== 'Settings' || isSuperAdmin.value) {
+      return item;
+    }
+
+    return {
+      ...item,
+      children: item.children.filter(
+        child => {
+          if (child.name === 'Settings Branding') {
+            return canSeeBrandingMenu.value;
+          }
+
+          return !hiddenSettingsMenusForNonSuperAdmin.includes(child.name);
+        }
+      ),
+    };
+  });
+
   if (currentUserRole.value === 'agent') {
-    return items.filter(item => !hiddenMenusForAgent.includes(item.name));
+    return itemsWithRestrictedSettings.filter(
+      item => !hiddenMenusForAgent.includes(item.name)
+    );
   }
 
-  return items;
+  if (currentUserRole.value === 'administrator' && !isSuperAdmin.value) {
+    return itemsWithRestrictedSettings.filter(
+      item => !hiddenMenusForAdministrator.includes(item.name)
+    );
+  }
+
+  return itemsWithRestrictedSettings;
 });
 </script>
 
@@ -647,35 +713,46 @@ const menuItems = computed(() => {
       closeMobileSidebar,
       { ignore: ['#mobile-sidebar-launcher'] },
     ]"
-    class="bg-n-solid-2 rtl:border-l ltr:border-r border-n-weak flex flex-col text-sm pb-1 fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 transition-transform duration-200 ease-in-out md:static w-[200px] basis-[200px] md:flex-shrink-0 md:ltr:translate-x-0 md:rtl:-translate-x-0"
+    class="bg-[#F7F8FA] dark:bg-[#202326] rtl:border-l ltr:border-r border-[#E1E4E8] dark:border-[#1F2A37] flex flex-col text-sm pb-1 fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 transition-transform duration-200 ease-in-out md:static md:flex-shrink-0 md:ltr:translate-x-0 md:rtl:-translate-x-0"
     :class="[
       {
         'shadow-lg md:shadow-none': isMobileSidebarOpen,
         'ltr:-translate-x-full rtl:translate-x-full': !isMobileSidebarOpen,
       },
+      isCollapsed ? 'w-[64px] basis-[64px]' : 'w-[250px] basis-[250px]',
     ]"
   >
     <section class="grid gap-2 mt-2 mb-4">
-      <div class="flex gap-2 items-center px-2 min-w-0">
+      <div
+        class="px-4 flex"
+        :class="isCollapsed ? 'justify-center' : ''"
+      >
         <div class="grid flex-shrink-0 place-content-center size-6">
-          <Logo class="size-4" />
+          <Logo class="size-6" />
         </div>
-        <div class="flex-shrink-0 w-px h-3 bg-n-strong" />
+        <div
+          v-show="!isCollapsed"
+          class="flex-shrink-0 w-px h-3 bg-n-strong"
+        />
         <SidebarAccountSwitcher
+          v-show="!isCollapsed"
           class="flex-grow -mx-1 min-w-0"
           @show-create-account-modal="emit('showCreateAccountModal')"
         />
       </div>
-      <div class="flex gap-2 px-2">
+      <div class="flex gap-2 px-2" :class="isCollapsed ? 'justify-center' : ''">
         <RouterLink
           :to="{ name: 'search' }"
-          class="flex gap-2 items-center px-2 py-1 w-full h-7 rounded-lg outline outline-1 outline-n-weak bg-n-solid-3 dark:bg-n-black/30"
+          :title="searchPlaceholder"
+          class="flex gap-2 items-center px-2 py-1 w-full h-7 rounded-lg outline outline-1 outline-n-weak bg-white/70 dark:bg-[#202326]"
+          :class="isCollapsed ? 'w-8 px-0 justify-center' : ''"
         >
-          <span class="flex-shrink-0 i-lucide-search size-4 text-n-slate-11" />
-          <span class="flex-grow text-left">
-            {{ t('COMBOBOX.SEARCH_PLACEHOLDER') }}
+          <span class="flex-shrink-0 i-lucide-search size-5 text-n-slate-11" />
+          <span v-show="!isCollapsed" class="flex-grow text-left">
+            {{ searchPlaceholder }}
           </span>
           <span
+            v-show="!isCollapsed"
             class="hidden tracking-wide pointer-events-none select-none text-n-slate-10"
           >
             {{ searchShortcut }}
@@ -687,7 +764,7 @@ const menuItems = computed(() => {
               icon="i-lucide-pen-line"
               color="slate"
               size="sm"
-              class="!h-7 !bg-n-solid-3 dark:!bg-n-black/30 !outline-n-weak !text-n-slate-11"
+              class="!h-7 !bg-white/70 dark:!bg-[#202326] !outline-n-weak !text-n-slate-11"
               @click="onComposeOpen(toggle)"
             />
           </template>
@@ -695,7 +772,10 @@ const menuItems = computed(() => {
       </div>
     </section>
     <nav class="grid overflow-y-scroll flex-grow gap-2 px-2 pb-5 no-scrollbar">
-      <ul class="flex flex-col gap-1.5 m-0 list-none">
+      <ul
+        class="flex flex-col gap-1.5 m-0 list-none"
+        :class="isCollapsed ? 'items-center' : ''"
+      >
         <SidebarGroup
           v-for="item in menuItems"
           :key="item.name"
@@ -707,21 +787,38 @@ const menuItems = computed(() => {
       class="flex flex-col flex-shrink-0 relative gap-1 justify-between items-center"
     >
       <div
-        class="pointer-events-none absolute inset-x-0 -top-[31px] h-8 bg-gradient-to-t from-n-solid-2 to-transparent"
+        class="pointer-events-none absolute inset-x-0 -top-[31px] h-8 bg-gradient-to-t from-[#F7F8FA] dark:from-[#202326] to-transparent"
       />
       <SidebarChangelogCard
         v-if="
           isOnChatwootCloud &&
           !isACustomBrandedInstance &&
-          currentUserRole !== 'agent'
+          isSuperAdmin
         "
       />
       <div
         class="p-1 flex-shrink-0 flex w-full justify-between z-10 gap-2 items-center border-t border-n-weak shadow-[0px_-2px_4px_0px_rgba(27,28,29,0.02)]"
+        :class="isCollapsed ? 'justify-center' : ''"
       >
         <SidebarProfileMenu
+          v-show="!isCollapsed"
           @open-key-shortcut-modal="emit('openKeyShortcutModal')"
         />
+        <button
+          class="flex items-center justify-center size-7 rounded-lg outline outline-1 outline-n-weak text-n-slate-11 hover:bg-n-alpha-2 dark:hover:bg-n-alpha-4"
+          :title="t('KEYBOARD_SHORTCUTS.TITLE.TOGGLE_SIDEBAR')"
+          :aria-label="t('KEYBOARD_SHORTCUTS.TITLE.TOGGLE_SIDEBAR')"
+          @click="toggleSidebar"
+        >
+          <span
+            class="size-5"
+            :class="
+              isCollapsed
+                ? 'i-lucide-chevron-right'
+                : 'i-lucide-chevron-left'
+            "
+          />
+        </button>
       </div>
     </section>
   </aside>

@@ -58,6 +58,22 @@ const globalConfig = computed(() => store.getters['globalConfig/get']);
 const hideBrandingForDomain = computed(() => {
   return Boolean(window.chatwootConfig.hideDefaultBranding);
 });
+const brandingLogo = computed(() => {
+  if (hideBrandingForDomain.value) {
+    return globalConfig.value.logo?.includes('/uploads/branding/')
+      ? globalConfig.value.logo
+      : '';
+  }
+  return globalConfig.value.logo || '';
+});
+const brandingLogoDark = computed(() => {
+  if (hideBrandingForDomain.value) {
+    return globalConfig.value.logoDark?.includes('/uploads/branding/')
+      ? globalConfig.value.logoDark
+      : '';
+  }
+  return globalConfig.value.logoDark || '';
+});
 const csrfToken = ref('');
 
 onMounted(async () => {
@@ -76,14 +92,14 @@ onMounted(async () => {
   >
     <section class="max-w-5xl mx-auto">
       <img
-        v-if="!hideBrandingForDomain"
-        :src="globalConfig.logo"
+        v-if="brandingLogo"
+        :src="brandingLogo"
         :alt="globalConfig.installationName"
         class="block w-auto h-8 mx-auto dark:hidden"
       />
       <img
-        v-if="globalConfig.logoDark && !hideBrandingForDomain"
-        :src="globalConfig.logoDark"
+        v-if="brandingLogoDark"
+        :src="brandingLogoDark"
         :alt="globalConfig.installationName"
         class="hidden w-auto h-8 mx-auto dark:block"
       />

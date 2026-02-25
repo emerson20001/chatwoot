@@ -14,7 +14,7 @@ const props = defineProps({
   activeChild: { type: Object, default: undefined },
 });
 
-const { isAllowed } = useSidebarContext();
+const { isAllowed, isCollapsed } = useSidebarContext();
 const scrollableContainer = ref(null);
 
 const accessibleItems = computed(() =>
@@ -43,12 +43,16 @@ useEventListener(scrollableContainer, 'scroll', () => {
 <template>
   <SidebarGroupSeparator
     v-if="hasAccessibleItems"
-    v-show="isExpanded"
+    v-show="isExpanded && !isCollapsed"
     :label
     :icon
     class="my-1"
   />
-  <ul v-if="children.length" class="m-0 list-none reset-base relative group">
+  <ul
+    v-if="children.length"
+    v-show="!isCollapsed"
+    class="m-0 list-none reset-base relative group"
+  >
     <!-- Each element has h-8, which is 32px, we will show 7 items with one hidden at the end,
     which is 14rem. Then we add 16px so that we have some text visible from the next item  -->
     <div

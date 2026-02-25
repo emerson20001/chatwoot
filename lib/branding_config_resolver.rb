@@ -19,16 +19,17 @@ module BrandingConfigResolver
       next unless config.key?(key)
 
       resolved = branding_value_for(key, config[key], host_key)
-      next if resolved.nil?
-
       config[key] = resolved
     end
     config
   end
 
   def branding_value_for(key, value, host_key)
+    account_state, account_value = account_branding_state(key)
+    return nil if account_state == :removed
+
     host_specific = host_specific_value(value, host_key).presence
-    account_specific = account_branding_value(key).presence
+    account_specific = account_state == :set ? account_value : nil
     default_value = default_branding_value(value)
 
     resolved = if key == 'LOGO_THUMBNAIL'
@@ -50,11 +51,22 @@ module BrandingConfigResolver
   end
 
   def account_branding_value(key)
+    _state, value = account_branding_state(key)
+    value
+  end
+
+  def account_branding_state(key)
     account = Current.account
-    return unless account.respond_to?(:branding_settings)
+    return [:unset, nil] unless account.respond_to?(:branding_settings)
 
     branding = account.branding_settings
-    branding[ACCOUNT_KEY_MAP[key]]
+    branding_key = ACCOUNT_KEY_MAP[key]
+    return [:unset, nil] unless branding.respond_to?(:key?) && branding.key?(branding_key)
+
+    value = branding[branding_key]
+    return [:removed, nil] if value.blank?
+
+    [:set, value]
   end
 
   def host_specific_value(value, host_key)

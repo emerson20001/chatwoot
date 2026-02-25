@@ -26,6 +26,11 @@ const files = reactive({
   logo_dark: null,
   logo_thumbnail: null,
 });
+const removeFlags = reactive({
+  logo: false,
+  logo_dark: false,
+  logo_thumbnail: false,
+});
 
 const { t } = useI18n();
 
@@ -58,7 +63,9 @@ const fields = computed(() =>
 const hasChanges = computed(() => {
   return fieldDefinitions.some(
     field =>
-      files[field.key] || (urls[field.key] && urls[field.key].trim() !== '')
+      files[field.key] ||
+      removeFlags[field.key] ||
+      (urls[field.key] && urls[field.key].trim() !== '')
   );
 });
 
@@ -98,6 +105,7 @@ const fetchConfigs = async () => {
       configs[field.key] = responseConfigs[field.key] || '';
       urls[field.key] = '';
       files[field.key] = null;
+      removeFlags[field.key] = false;
     });
   } catch (error) {
     useAlert(t('BRANDING_SETTINGS.ALERTS.LOAD_ERROR'));
@@ -109,6 +117,16 @@ const fetchConfigs = async () => {
 const handleFileChange = (event, key) => {
   const [file] = event.target.files;
   files[key] = file || null;
+  if (file) {
+    removeFlags[key] = false;
+  }
+};
+
+const markForRemoval = key => {
+  removeFlags[key] = true;
+  files[key] = null;
+  urls[key] = '';
+  configs[key] = '';
 };
 
 const submit = async () => {
@@ -122,7 +140,9 @@ const submit = async () => {
 
   fieldDefinitions.forEach(field => {
     const key = field.key;
-    if (files[key]) {
+    if (removeFlags[key]) {
+      formData.append(`branding[${key}][remove]`, 'true');
+    } else if (files[key]) {
       formData.append(`branding[${key}][file]`, files[key]);
     } else if (urls[key]) {
       formData.append(`branding[${key}][url]`, urls[key]);
@@ -190,8 +210,19 @@ onMounted(fetchConfigs);
               type="text"
               class="cw-input w-full mt-1"
               :placeholder="t('BRANDING_SETTINGS.CUSTOM_URL_PLACEHOLDER')"
+              @input="removeFlags[field.key] = false"
             />
           </label>
+          <div class="flex justify-end">
+            <button
+              v-if="configs[field.key]"
+              type="button"
+              class="text-sm text-red-600 hover:text-red-700 font-medium"
+              @click="markForRemoval(field.key)"
+            >
+              {{ t('BRANDING_SETTINGS.REMOVE_BUTTON') }}
+            </button>
+          </div>
         </div>
       </SectionLayout>
       <div class="flex justify-end">

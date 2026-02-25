@@ -87,6 +87,22 @@ export default {
     hideBrandingForDomain() {
       return Boolean(window.chatwootConfig.hideDefaultBranding);
     },
+    brandingLogo() {
+      if (this.hideBrandingForDomain) {
+        return this.globalConfig.logo?.includes('/uploads/branding/')
+          ? this.globalConfig.logo
+          : '';
+      }
+      return this.globalConfig.logo || '';
+    },
+    brandingLogoDark() {
+      if (this.hideBrandingForDomain) {
+        return this.globalConfig.logoDark?.includes('/uploads/branding/')
+          ? this.globalConfig.logoDark
+          : '';
+      }
+      return this.globalConfig.logoDark || '';
+    },
     allowedLoginMethods() {
       return window.chatwootConfig.allowedLoginMethods || ['email'];
     },
@@ -227,14 +243,14 @@ export default {
   >
     <section class="max-w-5xl mx-auto">
       <img
-        v-if="!hideBrandingForDomain"
-        :src="globalConfig.logo"
+        v-if="brandingLogo"
+        :src="brandingLogo"
         :alt="globalConfig.installationName"
         class="block w-auto h-8 mx-auto dark:hidden"
       />
       <img
-        v-if="globalConfig.logoDark && !hideBrandingForDomain"
-        :src="globalConfig.logoDark"
+        v-if="brandingLogoDark"
+        :src="brandingLogoDark"
         :alt="globalConfig.installationName"
         class="hidden w-auto h-8 mx-auto dark:block"
       />

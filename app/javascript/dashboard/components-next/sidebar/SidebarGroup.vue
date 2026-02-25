@@ -25,6 +25,7 @@ const {
   resolvePermissions,
   resolveFeatureFlag,
   isAllowed,
+  isCollapsed,
 } = useSidebarContext();
 
 const navigableChildren = computed(() => {
@@ -160,7 +161,7 @@ watch(
       @toggle="toggleTrigger"
     />
     <ul
-      v-if="hasChildren"
+      v-if="hasChildren && !isCollapsed"
       v-show="isExpanded || hasActiveChild"
       class="grid m-0 list-none sidebar-group-children"
     >
@@ -181,7 +182,7 @@ watch(
         />
       </template>
     </ul>
-    <ul v-else-if="isExpandable && isExpanded">
+    <ul v-else-if="isExpandable && isExpanded && !isCollapsed">
       <SidebarGroupEmptyLeaf />
     </ul>
   </Policy>

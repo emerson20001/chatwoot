@@ -79,7 +79,7 @@ const menuItems = computed(() => {
       },
     },
     {
-      show: currentUserRole.value !== 'agent',
+      show: currentUser.value.type === 'SuperAdmin',
       showOnCustomBrandedInstance: false,
       label: t('SIDEBAR_ITEMS.DOCS'),
       icon: 'i-lucide-book',
@@ -88,7 +88,7 @@ const menuItems = computed(() => {
       target: '_blank',
     },
     {
-      show: currentUserRole.value !== 'agent',
+      show: currentUser.value.type === 'SuperAdmin',
       showOnCustomBrandedInstance: false,
       label: t('SIDEBAR_ITEMS.CHANGELOG'),
       icon: 'i-lucide-scroll-text',

@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useMapGetter } from 'dashboard/composables/store.js';
 import Icon from 'next/icon/Icon.vue';
+import { useSidebarContext } from './provider';
 
 const props = defineProps({
   to: { type: [Object, String], default: '' },
@@ -21,31 +22,40 @@ const dynamicCount = useMapGetter(props.getterKeys.count);
 const count = computed(() =>
   dynamicCount.value > 99 ? '99+' : dynamicCount.value
 );
+const { isCollapsed } = useSidebarContext();
 </script>
 
 <template>
   <component
     :is="to ? 'router-link' : 'div'"
     class="flex items-center gap-2 px-2 py-1.5 rounded-lg h-8 min-w-0"
+    :class="[
+      isCollapsed ? 'justify-center px-0' : '',
+      {
+        'text-n-blue-text bg-n-alpha-2 font-medium':
+          isActive && !hasActiveChild,
+        'text-n-slate-12 font-medium': hasActiveChild,
+        'text-n-slate-11 hover:bg-n-alpha-2': !isActive && !hasActiveChild,
+      },
+    ]"
     role="button"
     draggable="false"
     :to="to"
     :title="label"
-    :class="{
-      'text-n-blue-text bg-n-alpha-2 font-medium': isActive && !hasActiveChild,
-      'text-n-slate-12 font-medium': hasActiveChild,
-      'text-n-slate-11 hover:bg-n-alpha-2': !isActive && !hasActiveChild,
-    }"
     @click.stop="emit('toggle')"
   >
-    <div v-if="icon" class="relative flex items-center gap-2">
-      <Icon v-if="icon" :icon="icon" class="size-4" />
+    <div
+      v-if="icon"
+      class="relative flex items-center gap-2"
+      :class="isCollapsed ? 'gap-0' : ''"
+    >
+      <Icon v-if="icon" :icon="icon" class="size-5" />
       <span
         v-if="showBadge"
         class="size-2 -top-px ltr:-right-px rtl:-left-px bg-n-brand absolute rounded-full border border-n-solid-2"
       />
     </div>
-    <div class="flex items-center gap-1.5 flex-grow min-w-0">
+    <div v-show="!isCollapsed" class="flex items-center gap-1.5 flex-grow min-w-0">
       <span class="text-sm font-medium leading-5 truncate">
         {{ label }}
       </span>
@@ -62,7 +72,7 @@ const count = computed(() =>
     </div>
     <span
       v-if="expandable"
-      v-show="isExpanded"
+      v-show="!isCollapsed && isExpanded"
       class="i-lucide-chevron-up size-3"
       @click.stop="emit('toggle')"
     />

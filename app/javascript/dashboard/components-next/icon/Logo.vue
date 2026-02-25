@@ -1,19 +1,24 @@
 <script setup>
-import { useAttrs } from 'vue';
+import { computed, useAttrs } from 'vue';
 import { useMapGetter } from 'dashboard/composables/store';
 
 const attrs = useAttrs();
 const globalConfig = useMapGetter('globalConfig/get');
+const enforceUploadsBrandingOnly = computed(() =>
+  Boolean(window.chatwootConfig?.hideDefaultBranding)
+);
+const showBrandingLogo = computed(() => {
+  if (enforceUploadsBrandingOnly.value) {
+    return globalConfig.value.logoThumbnail?.includes('/uploads/branding/');
+  }
+  return Boolean(globalConfig.value.logoThumbnail);
+});
 </script>
 
 <template>
-  <img
-    v-if="globalConfig.logoThumbnail"
-    v-bind="attrs"
-    :src="globalConfig.logoThumbnail"
-  />
+  <img v-if="showBrandingLogo" v-bind="attrs" :src="globalConfig.logoThumbnail" />
   <svg
-    v-else
+    v-else-if="!enforceUploadsBrandingOnly"
     v-once
     v-bind="attrs"
     width="16"

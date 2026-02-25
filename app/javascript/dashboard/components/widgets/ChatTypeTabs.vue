@@ -48,12 +48,15 @@ useKeyboardEvents(keyboardEvents);
 <template>
   <woot-tabs
     :index="activeTabIndex"
-    class="w-full px-3 -mt-1 py-0 [&_ul]:p-0"
+    variant="pill"
+    :border="false"
+    class="w-full px-3 -mt-1 py-1 mb-2.5"
     @change="onTabChange"
   >
     <woot-tabs-item
       v-for="(item, index) in items"
       :key="item.key"
+      variant="pill"
       class="text-sm [&_a]:font-medium"
       :index="index"
       :name="item.name"

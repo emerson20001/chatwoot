@@ -20,6 +20,25 @@ export default {
   },
   computed: {
     ...mapGetters({ globalConfig: 'globalConfig/get' }),
+    hideBrandingForDomain() {
+      return Boolean(window.chatwootConfig.hideDefaultBranding);
+    },
+    brandingLogo() {
+      if (this.hideBrandingForDomain) {
+        return this.globalConfig.logo?.includes('/uploads/branding/')
+          ? this.globalConfig.logo
+          : '';
+      }
+      return this.globalConfig.logo || '';
+    },
+    brandingLogoDark() {
+      if (this.hideBrandingForDomain) {
+        return this.globalConfig.logoDark?.includes('/uploads/branding/')
+          ? this.globalConfig.logoDark
+          : '';
+      }
+      return this.globalConfig.logoDark || '';
+    },
     isAChatwootInstance() {
       return this.globalConfig.installationName === 'Chatwoot';
     },
@@ -44,13 +63,14 @@ export default {
         <div class="px-8 max-w-[560px] w-full overflow-auto">
           <div class="mb-4">
             <img
-              :src="globalConfig.logo"
+              v-if="brandingLogo"
+              :src="brandingLogo"
               :alt="globalConfig.installationName"
               class="block w-auto h-8 dark:hidden"
             />
             <img
-              v-if="globalConfig.logoDark"
-              :src="globalConfig.logoDark"
+              v-if="brandingLogoDark"
+              :src="brandingLogoDark"
               :alt="globalConfig.installationName"
               class="hidden w-auto h-8 dark:block"
             />

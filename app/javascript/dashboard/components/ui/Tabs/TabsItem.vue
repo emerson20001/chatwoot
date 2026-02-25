@@ -26,6 +26,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  variant: {
+    type: String,
+    default: 'default',
+  },
 });
 
 const activeIndex = inject('activeIndex');
@@ -33,6 +37,7 @@ const updateActiveIndex = inject('updateActiveIndex');
 
 const active = computed(() => props.index === activeIndex.value);
 const getItemCount = computed(() => props.count);
+const isPillVariant = computed(() => props.variant === 'pill');
 
 const onTabClick = event => {
   event.preventDefault();
@@ -44,26 +49,38 @@ const onTabClick = event => {
 
 <template>
   <li
-    class="flex-shrink-0 my-0 mx-2 ltr:first:ml-0 rtl:first:mr-0 ltr:last:mr-0 rtl:last:ml-0 hover:text-n-slate-12"
+    class="flex-shrink-0 my-0 ltr:first:ml-0 rtl:first:mr-0 ltr:last:mr-0 rtl:last:ml-0 hover:text-n-slate-12"
+    :class="isPillVariant ? 'mx-0.5' : 'mx-2'"
   >
     <a
-      class="flex items-center flex-row border-b select-none cursor-pointer text-sm relative top-[1px] transition-[border-color] duration-[150ms] ease-[cubic-bezier(0.37,0,0.63,1)]"
+      class="flex items-center flex-row select-none cursor-pointer relative transition-colors duration-[150ms] ease-[cubic-bezier(0.37,0,0.63,1)]"
       :class="[
-        active
-          ? 'border-b border-n-brand text-n-blue-text'
-          : 'border-transparent text-n-slate-11',
-        isCompact ? 'py-2 text-sm' : 'text-base py-3',
+        isPillVariant
+          ? active
+            ? 'bg-[#4F6EF7] dark:bg-[#3B5BDB] text-white shadow-sm'
+            : 'text-n-slate-12 dark:text-n-slate-11 hover:text-n-slate-12 hover:bg-n-alpha-2 dark:hover:bg-n-alpha-4'
+          : active
+            ? 'bg-n-alpha-2 dark:bg-n-alpha-4 text-n-blue-text'
+            : 'text-n-slate-11 hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3',
+        isPillVariant
+          ? 'rounded-full px-4 py-1.5 text-sm font-medium'
+          : isCompact
+            ? 'py-2 text-sm rounded-[5px] px-2'
+            : 'text-base py-3 rounded-[5px] px-2',
       ]"
       @click="onTabClick"
     >
       {{ name }}
       <div
         v-if="showBadge"
-        class="rounded-md h-5 flex items-center justify-center text-xxs font-semibold my-0 mx-1 px-1 py-0 min-w-[20px]"
+        class="flex items-center justify-center text-xxs font-semibold my-0 mx-1 px-1 py-0 min-w-[20px]"
         :class="[
+          isPillVariant ? 'rounded-full h-5 px-1.5' : 'rounded-md h-5',
           active
-            ? 'bg-n-brand/10 dark:bg-n-brand/20 text-n-blue-text'
-            : 'bg-n-alpha-black2 dark:bg-n-solid-3 text-n-slate-11',
+            ? isPillVariant
+              ? 'bg-white text-[#1F2937] dark:bg-[#1F2A37] dark:text-[#E5E7EB]'
+              : 'bg-n-brand/10 dark:bg-n-brand/20 text-n-blue-text'
+            : 'bg-n-alpha-2 dark:bg-n-alpha-4 text-n-slate-11',
         ]"
       >
         <span>

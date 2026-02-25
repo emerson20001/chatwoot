@@ -11,6 +11,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  variant: {
+    type: String,
+    default: 'default',
+  },
 });
 
 const emit = defineEmits(['change']);
@@ -29,6 +33,8 @@ const activeIndex = computed({
     emit('change', newValue);
   },
 });
+
+const isPillVariant = computed(() => props.variant === 'pill');
 
 provide('activeIndex', activeIndex);
 provide('updateActiveIndex', index => {
@@ -67,7 +73,11 @@ watch(
   <div
     ref="tabsContainer"
     class="flex"
-    :class="[border && 'border-b border-b-n-weak']"
+    :class="[
+      border && !isPillVariant && 'border-b border-b-n-weak',
+      isPillVariant &&
+        'bg-[#F0F2F5] dark:bg-[#202326] rounded-[18px] px-1.5 py-1 shadow-sm',
+    ]"
   >
     <button
       v-if="hasScroll"
@@ -78,9 +88,13 @@ watch(
     </button>
     <ul
       ref="tabsList"
-      class="border-r-0 border-l-0 border-t-0 flex min-w-[6.25rem] py-0 px-4 list-none mb-0"
+      class="border-r-0 border-l-0 border-t-0 flex min-w-[6.25rem] list-none mb-0"
       :class="
-        hasScroll ? 'overflow-hidden py-0 px-1 max-w-[calc(100%-64px)]' : ''
+        [
+          hasScroll ? 'overflow-hidden max-w-[calc(100%-64px)]' : '',
+          !hasScroll && isPillVariant ? 'justify-center' : '',
+          isPillVariant ? 'px-1 py-0.5 gap-1.5' : 'py-0 px-4',
+        ].join(' ')
       "
     >
       <slot />

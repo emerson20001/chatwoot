@@ -17,7 +17,11 @@
     %>
     <title><%= installation_name %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0"/>
-    <% favicon_url = branded_domain ? nil : @global_config['LOGO_THUMBNAIL'] %>
+    <% favicon_url = if branded_domain
+      @global_config['LOGO_THUMBNAIL']&.include?('/uploads/branding/') ? @global_config['LOGO_THUMBNAIL'] : nil
+    else
+      @global_config['LOGO_THUMBNAIL']
+    end %>
     <% if favicon_url.present? %>
       <% icon_path = ->(basename) { BrandingConfigResolver.icon_path(favicon_url, basename) } %>
       <link rel="icon" type="image/x-icon" href="<%= favicon_url %>">

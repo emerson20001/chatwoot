@@ -104,10 +104,15 @@ export default {
     },
     interfaceSectionDescription() {
       const note = this.$t('PROFILE_SETTINGS.FORM.INTERFACE_SECTION.NOTE');
-      const customNoteForAgent = note.replace(/\sdo\sChatwoot\.$/, '.');
+      const customNoteForNonSuperAdmin = note.replace(
+        /\sdo\sChatwoot\.$/,
+        '.'
+      );
 
       return this.replaceInstallationName(
-        this.currentUserRole === 'agent' ? customNoteForAgent : note
+        this.currentUser?.type === 'SuperAdmin'
+          ? note
+          : customNoteForNonSuperAdmin
       );
     },
   },
