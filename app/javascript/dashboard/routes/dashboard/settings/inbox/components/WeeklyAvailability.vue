@@ -199,12 +199,12 @@ export default {
 
 <style lang="scss" scoped>
 .timezone-input-wrap {
-  &::v-deep .multiselect {
+  & :deep(.multiselect ){
     @apply mt-2;
   }
 }
 
-::v-deep.message-editor {
+:deep(.message-editor) {
   @apply border-0;
 }
 

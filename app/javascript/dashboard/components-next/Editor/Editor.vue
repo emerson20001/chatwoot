@@ -139,7 +139,7 @@ watch(
 
 <style lang="scss" scoped>
 .editor-wrapper {
-  ::v-deep {
+  :deep(*) {
     .ProseMirror-menubar-wrapper {
       .ProseMirror.ProseMirror-woot-style {
         p {

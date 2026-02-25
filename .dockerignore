@@ -1,4 +1,12 @@
 .bundle
+.git
+.github
+.gitignore
+.husky
+.vscode
+.idea
+.DS_Store
+.env
 .env
 .env.*
 docker-compose.*
@@ -12,6 +20,8 @@ tmp
 public/packs
 node_modules
 vendor/bundle
-.DS_Store
 *.swp
 *~
+.overmind.sock
+coverage
+.cache

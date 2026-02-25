@@ -44,6 +44,13 @@ if (isLibraryMode) {
 
 export default defineConfig({
   plugins: plugins,
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern',
+      },
+    },
+  },
   server: {
     host: '0.0.0.0',
     port: 3036,

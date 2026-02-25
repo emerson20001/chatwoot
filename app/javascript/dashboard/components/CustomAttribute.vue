@@ -335,7 +335,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-::v-deep {
+:deep(*) {
   .selector-wrap {
     @apply m-0 top-1;
 

@@ -144,7 +144,7 @@ const previewArticle = () => {
 </template>
 
 <style lang="scss" scoped>
-::v-deep {
+:deep(*) {
   .ProseMirror .empty-node::before {
     @apply text-n-slate-10 text-base;
   }

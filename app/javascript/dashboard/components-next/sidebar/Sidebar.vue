@@ -437,21 +437,25 @@ const menuItems = computed(() => {
           to: accountScopedRoute('conversation_reports'),
         },
         ...reportRoutes.value,
-        {
-          name: 'Reports CSAT',
-          label: t('SIDEBAR.CSAT'),
-          to: accountScopedRoute('csat_reports'),
-        },
-        {
-          name: 'Reports SLA',
-          label: t('SIDEBAR.REPORTS_SLA'),
-          to: accountScopedRoute('sla_reports'),
-        },
-        {
-          name: 'Reports Bot',
-          label: t('SIDEBAR.REPORTS_BOT'),
-          to: accountScopedRoute('bot_reports'),
-        },
+        ...(isSuperAdmin.value
+          ? [
+              {
+                name: 'Reports CSAT',
+                label: t('SIDEBAR.CSAT'),
+                to: accountScopedRoute('csat_reports'),
+              },
+              {
+                name: 'Reports SLA',
+                label: t('SIDEBAR.REPORTS_SLA'),
+                to: accountScopedRoute('sla_reports'),
+              },
+              {
+                name: 'Reports Bot',
+                label: t('SIDEBAR.REPORTS_BOT'),
+                to: accountScopedRoute('bot_reports'),
+              },
+            ]
+          : []),
       ],
     },
     {

@@ -317,7 +317,7 @@ export default {
   margin-bottom: 1rem;
 }
 
-::v-deep {
+:deep(*) {
   .multiselect {
     margin-bottom: 0;
   }
