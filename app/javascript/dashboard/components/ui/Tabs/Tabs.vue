@@ -1,5 +1,14 @@
 <script setup>
-import { ref, useTemplateRef, provide, computed, watch } from 'vue';
+import {
+  ref,
+  useTemplateRef,
+  provide,
+  computed,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+} from 'vue';
 import { useElementSize } from '@vueuse/core';
 
 const props = defineProps({
@@ -27,6 +36,7 @@ const { width: listWidth } = useElementSize(tabsList);
 
 const hasScroll = ref(false);
 const tabsCount = ref(0);
+let tabsObserver = null;
 
 const activeIndex = computed({
   get: () => props.index,
@@ -36,9 +46,7 @@ const activeIndex = computed({
 });
 
 const isPillVariant = computed(() => props.variant === 'pill');
-const shouldFitTabs = computed(
-  () => !isPillVariant.value && tabsCount.value > 0 && tabsCount.value <= 3
-);
+const shouldFitTabs = computed(() => !hasScroll.value);
 
 provide('activeIndex', activeIndex);
 provide('updateActiveIndex', index => {
@@ -49,9 +57,7 @@ provide('shouldFitTabs', shouldFitTabs);
 const computeScrollWidth = () => {
   if (tabsContainer.value && tabsList.value) {
     tabsCount.value = tabsList.value.children.length;
-    hasScroll.value =
-      !shouldFitTabs.value &&
-      tabsList.value.scrollWidth > tabsList.value.clientWidth;
+    hasScroll.value = tabsList.value.scrollWidth > tabsList.value.clientWidth;
   }
 };
 
@@ -67,6 +73,10 @@ const onScrollClick = direction => {
   }
 };
 
+const handleResize = () => {
+  computeScrollWidth();
+};
+
 // Watch for changes in element sizes with immediate execution
 watch(
   [containerWidth, listWidth],
@@ -75,6 +85,31 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(async () => {
+  await nextTick();
+  computeScrollWidth();
+
+  if (tabsList.value) {
+    tabsObserver = new MutationObserver(() => computeScrollWidth());
+    tabsObserver.observe(tabsList.value, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+    });
+  }
+
+  window.addEventListener('resize', handleResize);
+});
+
+onBeforeUnmount(() => {
+  if (tabsObserver) {
+    tabsObserver.disconnect();
+    tabsObserver = null;
+  }
+  window.removeEventListener('resize', handleResize);
+});
 </script>
 
 <template>
@@ -102,7 +137,13 @@ watch(
           hasScroll ? 'overflow-hidden max-w-[calc(100%-64px)]' : '',
           !hasScroll && isPillVariant ? 'justify-center' : '',
           shouldFitTabs ? 'w-full' : '',
-          isPillVariant ? 'px-0.5 py-0.5 gap-1' : 'py-0 px-1',
+          isPillVariant
+            ? hasScroll
+              ? 'px-0.5 py-0.5 gap-1'
+              : 'px-1 py-0.5 gap-1.5'
+            : hasScroll
+              ? 'py-0 px-1'
+              : 'py-0 px-2',
         ].join(' ')
       "
     >

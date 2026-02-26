@@ -39,6 +39,13 @@ const shouldFitTabs = inject('shouldFitTabs', computed(() => false));
 const active = computed(() => props.index === activeIndex.value);
 const getItemCount = computed(() => props.count);
 const isPillVariant = computed(() => props.variant === 'pill');
+const tabWeight = computed(() => {
+  const labelWeight = Array.from((props.name || '').trim()).length || 1;
+  const badgeWeight = props.showBadge
+    ? Array.from(String(getItemCount.value || '')).length + 2
+    : 0;
+  return Math.max(1, labelWeight + badgeWeight);
+});
 
 const onTabClick = event => {
   event.preventDefault();
@@ -52,12 +59,13 @@ const onTabClick = event => {
   <li
     class="my-0 ltr:first:ml-0 rtl:first:mr-0 ltr:last:mr-0 rtl:last:ml-0 hover:text-n-slate-12"
     :class="[
-      shouldFitTabs ? 'flex-1 min-w-0 mx-0' : 'flex-shrink-0',
-      isPillVariant ? 'mx-0.5' : shouldFitTabs ? '' : 'mx-2',
+      shouldFitTabs ? 'min-w-0 mx-0' : 'flex-shrink-0',
+      isPillVariant ? (shouldFitTabs ? 'mx-0' : 'mx-0.5') : shouldFitTabs ? '' : 'mx-2',
     ]"
+    :style="shouldFitTabs ? { flexGrow: tabWeight, flexBasis: '0' } : {}"
   >
     <a
-      class="flex items-center flex-row select-none cursor-pointer relative transition-colors duration-[150ms] ease-[cubic-bezier(0.37,0,0.63,1)]"
+      class="flex items-center flex-row select-none cursor-pointer relative transition-colors duration-[150ms] ease-[cubic-bezier(0.37,0,0.63,1)] whitespace-nowrap"
       :class="[
         shouldFitTabs ? 'w-full justify-center' : '',
         isPillVariant
@@ -68,14 +76,20 @@ const onTabClick = event => {
             ? 'bg-n-alpha-2 dark:bg-n-alpha-4 text-n-blue-text'
             : 'text-n-slate-11 hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3',
         isPillVariant
-          ? 'rounded-full px-2 py-1.5 text-[13px] font-medium'
+          ? shouldFitTabs
+            ? 'rounded-full px-4 py-1.5 text-[13px] font-medium'
+            : 'rounded-full px-2 py-1.5 text-[13px] font-medium'
           : isCompact
-            ? 'py-2 text-[13px] rounded-[5px] px-1'
-            : 'text-[15px] py-3 rounded-[5px] px-1',
+            ? shouldFitTabs
+              ? 'py-2 text-[13px] rounded-[5px] px-2'
+              : 'py-2 text-[13px] rounded-[5px] px-1'
+            : shouldFitTabs
+              ? 'text-[15px] py-3 rounded-[5px] px-2'
+              : 'text-[15px] py-3 rounded-[5px] px-1',
       ]"
       @click="onTabClick"
     >
-      {{ name }}
+      <span class="whitespace-nowrap">{{ name }}</span>
       <div
         v-if="showBadge"
         class="flex items-center justify-center text-xxs font-semibold my-0 mx-0.5 px-0.5 py-0 min-w-[16px]"
