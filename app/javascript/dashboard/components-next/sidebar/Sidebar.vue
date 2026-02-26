@@ -58,6 +58,9 @@ const isCollapsed = ref(false);
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
+  if (!isCollapsed.value) {
+    expandedItem.value = null;
+  }
 };
 
 const searchPlaceholder = computed(() => {
@@ -723,6 +726,7 @@ const menuItems = computed(() => {
         'shadow-lg md:shadow-none': isMobileSidebarOpen,
         'ltr:-translate-x-full rtl:translate-x-full': !isMobileSidebarOpen,
       },
+      isCollapsed ? 'z-[60]' : 'z-40',
       isCollapsed ? 'w-[64px] basis-[64px]' : 'w-[250px] basis-[250px]',
     ]"
   >
@@ -744,7 +748,10 @@ const menuItems = computed(() => {
           @show-create-account-modal="emit('showCreateAccountModal')"
         />
       </div>
-      <div class="flex gap-2 px-2" :class="isCollapsed ? 'justify-center' : ''">
+      <div
+        class="flex gap-2 px-2"
+        :class="isCollapsed ? 'flex-col items-center justify-center' : ''"
+      >
         <RouterLink
           :to="{ name: 'search' }"
           :title="searchPlaceholder"
@@ -769,15 +776,19 @@ const menuItems = computed(() => {
               color="slate"
               size="sm"
               class="!h-7 !bg-white/70 dark:!bg-[#202326] !outline-n-weak !text-n-slate-11"
+              :class="isCollapsed ? '!w-8 !px-0 !justify-center' : ''"
               @click="onComposeOpen(toggle)"
             />
           </template>
         </ComposeConversation>
       </div>
     </section>
-    <nav class="grid overflow-y-scroll flex-grow gap-2 px-2 pb-5 no-scrollbar">
+    <nav
+      class="grid flex-grow gap-2 px-2 pb-5"
+      :class="isCollapsed ? 'overflow-visible' : 'overflow-y-auto no-scrollbar'"
+    >
       <ul
-        class="flex flex-col gap-1.5 m-0 list-none"
+        class="flex flex-col gap-1.5 m-0 list-none max-h-full"
         :class="isCollapsed ? 'items-center' : ''"
       >
         <SidebarGroup

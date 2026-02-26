@@ -7,6 +7,13 @@ import SidebarGroupHeader from './SidebarGroupHeader.vue';
 import SidebarGroupLeaf from './SidebarGroupLeaf.vue';
 import SidebarSubGroup from './SidebarSubGroup.vue';
 import SidebarGroupEmptyLeaf from './SidebarGroupEmptyLeaf.vue';
+import {
+  DropdownContainer,
+  DropdownBody,
+  DropdownItem,
+  DropdownSection,
+  DropdownSeparator,
+} from 'dashboard/components-next/dropdown-menu/base';
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -52,6 +59,29 @@ const accessibleItems = computed(() => {
 
 const hasAccessibleChildren = computed(() => {
   return accessibleItems.value.length > 0;
+});
+
+const collapsedDirectChildren = computed(() => {
+  if (!hasChildren.value) return [];
+  return props.children.filter(child => child.to && isAllowed(child.to));
+});
+
+const collapsedSubGroups = computed(() => {
+  if (!hasChildren.value) return [];
+
+  return props.children
+    .filter(child => Array.isArray(child.children) && child.children.length > 0)
+    .map(child => {
+      const items = child.children.filter(grandChild => {
+        return grandChild.to && isAllowed(grandChild.to);
+      });
+      return {
+        name: child.name,
+        label: child.label,
+        items,
+      };
+    })
+    .filter(group => group.items.length > 0);
 });
 
 const isActive = computed(() => {
@@ -109,6 +139,11 @@ const hasActiveChild = computed(() => {
 });
 
 const toggleTrigger = () => {
+  if (isCollapsed.value && hasChildren.value) {
+    setExpandedItem(props.name);
+    return;
+  }
+
   if (
     hasAccessibleChildren.value &&
     !isExpanded.value &&
@@ -146,9 +181,72 @@ watch(
     :permissions="resolvePermissions(to)"
     :feature-flag="resolveFeatureFlag(to)"
     as="li"
-    class="grid gap-1 text-sm cursor-pointer select-none"
+    class="grid gap-1 text-sm cursor-pointer select-none relative overflow-visible"
   >
+    <DropdownContainer
+      v-if="hasChildren && isCollapsed"
+      class="w-full"
+      @close="setExpandedItem(null)"
+    >
+      <template #trigger="{ toggle }">
+        <SidebarGroupHeader
+          :icon
+          :name
+          :label
+          :getter-keys="getterKeys"
+          :is-active="isActive"
+          :has-active-child="hasActiveChild"
+          :expandable="hasChildren"
+          :is-expanded="isExpanded"
+          @toggle="toggle"
+        />
+      </template>
+
+      <DropdownBody
+        class="ltr:left-[calc(100%+8px)] rtl:right-[calc(100%+8px)] top-0 z-[120] w-[280px] max-w-[calc(100vw-84px)] shadow-xl"
+      >
+        <DropdownSection
+          v-if="collapsedDirectChildren.length"
+          :title="label"
+        >
+          <DropdownItem
+            v-for="child in collapsedDirectChildren"
+            :key="child.name"
+            :label="child.label"
+            :icon="typeof child.icon === 'string' ? child.icon : null"
+            :link="child.to"
+            :class="{
+              'bg-n-alpha-2 rounded-lg text-n-blue-text':
+                activeChild?.name === child.name,
+            }"
+          />
+        </DropdownSection>
+
+        <template
+          v-for="(group, groupIndex) in collapsedSubGroups"
+          :key="group.name"
+        >
+          <DropdownSeparator
+            v-if="collapsedDirectChildren.length || groupIndex > 0"
+          />
+          <DropdownSection :title="group.label">
+            <DropdownItem
+              v-for="child in group.items"
+              :key="child.name"
+              :label="child.label"
+              :icon="typeof child.icon === 'string' ? child.icon : null"
+              :link="child.to"
+              :class="{
+                'bg-n-alpha-2 rounded-lg text-n-blue-text':
+                  activeChild?.name === child.name,
+              }"
+            />
+          </DropdownSection>
+        </template>
+      </DropdownBody>
+    </DropdownContainer>
     <SidebarGroupHeader
+      v-else
       :icon
       :name
       :label
