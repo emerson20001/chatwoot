@@ -68,17 +68,17 @@ const onTabClick = event => {
             ? 'bg-n-alpha-2 dark:bg-n-alpha-4 text-n-blue-text'
             : 'text-n-slate-11 hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3',
         isPillVariant
-          ? 'rounded-full px-4 py-1.5 text-[13px] font-medium'
+          ? 'rounded-full px-2 py-1.5 text-[13px] font-medium'
           : isCompact
-            ? 'py-2 text-[13px] rounded-[5px] px-2'
-            : 'text-[15px] py-3 rounded-[5px] px-2',
+            ? 'py-2 text-[13px] rounded-[5px] px-1'
+            : 'text-[15px] py-3 rounded-[5px] px-1',
       ]"
       @click="onTabClick"
     >
       {{ name }}
       <div
         v-if="showBadge"
-        class="flex items-center justify-center text-xxs font-semibold my-0 mx-1 px-1 py-0 min-w-[20px]"
+        class="flex items-center justify-center text-xxs font-semibold my-0 mx-0.5 px-0.5 py-0 min-w-[16px]"
         :class="[
           isPillVariant ? 'rounded-full h-5 px-1.5' : 'rounded-md h-5',
           active

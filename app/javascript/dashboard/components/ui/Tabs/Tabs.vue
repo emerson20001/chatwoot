@@ -102,7 +102,7 @@ watch(
           hasScroll ? 'overflow-hidden max-w-[calc(100%-64px)]' : '',
           !hasScroll && isPillVariant ? 'justify-center' : '',
           shouldFitTabs ? 'w-full' : '',
-          isPillVariant ? 'px-1 py-0.5 gap-1.5' : 'py-0 px-4',
+          isPillVariant ? 'px-0.5 py-0.5 gap-1' : 'py-0 px-1',
         ].join(' ')
       "
     >
