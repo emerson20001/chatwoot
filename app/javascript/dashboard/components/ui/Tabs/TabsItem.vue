@@ -34,6 +34,7 @@ const props = defineProps({
 
 const activeIndex = inject('activeIndex');
 const updateActiveIndex = inject('updateActiveIndex');
+const shouldFitTabs = inject('shouldFitTabs', computed(() => false));
 
 const active = computed(() => props.index === activeIndex.value);
 const getItemCount = computed(() => props.count);
@@ -49,12 +50,16 @@ const onTabClick = event => {
 
 <template>
   <li
-    class="flex-shrink-0 my-0 ltr:first:ml-0 rtl:first:mr-0 ltr:last:mr-0 rtl:last:ml-0 hover:text-n-slate-12"
-    :class="isPillVariant ? 'mx-0.5' : 'mx-2'"
+    class="my-0 ltr:first:ml-0 rtl:first:mr-0 ltr:last:mr-0 rtl:last:ml-0 hover:text-n-slate-12"
+    :class="[
+      shouldFitTabs ? 'flex-1 min-w-0 mx-0' : 'flex-shrink-0',
+      isPillVariant ? 'mx-0.5' : shouldFitTabs ? '' : 'mx-2',
+    ]"
   >
     <a
       class="flex items-center flex-row select-none cursor-pointer relative transition-colors duration-[150ms] ease-[cubic-bezier(0.37,0,0.63,1)]"
       :class="[
+        shouldFitTabs ? 'w-full justify-center' : '',
         isPillVariant
           ? active
             ? 'bg-[#4F6EF7] dark:bg-[#3B5BDB] text-white shadow-sm'

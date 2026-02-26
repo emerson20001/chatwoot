@@ -26,6 +26,7 @@ const { width: containerWidth } = useElementSize(tabsContainer);
 const { width: listWidth } = useElementSize(tabsList);
 
 const hasScroll = ref(false);
+const tabsCount = ref(0);
 
 const activeIndex = computed({
   get: () => props.index,
@@ -35,15 +36,22 @@ const activeIndex = computed({
 });
 
 const isPillVariant = computed(() => props.variant === 'pill');
+const shouldFitTabs = computed(
+  () => !isPillVariant.value && tabsCount.value > 0 && tabsCount.value <= 3
+);
 
 provide('activeIndex', activeIndex);
 provide('updateActiveIndex', index => {
   activeIndex.value = index;
 });
+provide('shouldFitTabs', shouldFitTabs);
 
 const computeScrollWidth = () => {
   if (tabsContainer.value && tabsList.value) {
-    hasScroll.value = tabsList.value.scrollWidth > tabsList.value.clientWidth;
+    tabsCount.value = tabsList.value.children.length;
+    hasScroll.value =
+      !shouldFitTabs.value &&
+      tabsList.value.scrollWidth > tabsList.value.clientWidth;
   }
 };
 
@@ -93,6 +101,7 @@ watch(
         [
           hasScroll ? 'overflow-hidden max-w-[calc(100%-64px)]' : '',
           !hasScroll && isPillVariant ? 'justify-center' : '',
+          shouldFitTabs ? 'w-full' : '',
           isPillVariant ? 'px-1 py-0.5 gap-1.5' : 'py-0 px-4',
         ].join(' ')
       "
