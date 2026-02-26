@@ -68,10 +68,10 @@ const onTabClick = event => {
             ? 'bg-n-alpha-2 dark:bg-n-alpha-4 text-n-blue-text'
             : 'text-n-slate-11 hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3',
         isPillVariant
-          ? 'rounded-full px-4 py-1.5 text-sm font-medium'
+          ? 'rounded-full px-4 py-1.5 text-[13px] font-medium'
           : isCompact
-            ? 'py-2 text-sm rounded-[5px] px-2'
-            : 'text-base py-3 rounded-[5px] px-2',
+            ? 'py-2 text-[13px] rounded-[5px] px-2'
+            : 'text-[15px] py-3 rounded-[5px] px-2',
       ]"
       @click="onTabClick"
     >
