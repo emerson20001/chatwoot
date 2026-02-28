@@ -288,6 +288,16 @@ const activeTeam = computed(() => {
   return {};
 });
 
+const isScopedConversationView = computed(() => {
+  return Boolean(
+    props.conversationInbox ||
+      props.teamId ||
+      props.label ||
+      props.conversationType ||
+      props.foldersId
+  );
+});
+
 const pageTitle = computed(() => {
   if (hasAppliedFilters.value) {
     return t('CHAT_LIST.TAB_HEADING');
@@ -375,7 +385,38 @@ function setFiltersFromUISettings() {
     : wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC;
 }
 
+function shouldSwitchToAllForFirstUnassignedConversation() {
+  if (!isScopedConversationView.value) return false;
+  if (activeAssigneeTab.value !== wootConstants.ASSIGNEE_TYPE.ME) return false;
+
+  const baseFilters = {
+    ...conversationFilters.value,
+    page: 1,
+  };
+  const mineCount = mineChatsList.value({
+    ...baseFilters,
+    assigneeType: wootConstants.ASSIGNEE_TYPE.ME,
+  }).length;
+  const unassignedCount = unAssignedChatsList.value({
+    ...baseFilters,
+    assigneeType: wootConstants.ASSIGNEE_TYPE.UNASSIGNED,
+  }).length;
+
+  return mineCount === 0 && unassignedCount > 0;
+}
+
+function switchToAllForFirstUnassignedConversation() {
+  if (!shouldSwitchToAllForFirstUnassignedConversation()) return;
+
+  activeAssigneeTab.value = wootConstants.ASSIGNEE_TYPE.ALL;
+  resetBulkActions();
+  store.dispatch('conversationPage/reset');
+  store.dispatch('emptyAllConversations');
+  fetchConversations();
+}
+
 function emitConversationLoaded() {
+  switchToAllForFirstUnassignedConversation();
   emit('conversationLoad');
   // [VITE] removing this since the library has changed
   // nextTick(() => {
@@ -807,19 +848,27 @@ provide('assignPriority', assignPriority);
 provide('isConversationSelected', isConversationSelected);
 provide('deleteConversation', handleDelete);
 
-watch(activeTeam, () => resetAndFetchData());
+watch(activeTeam, () => {
+  resetAndFetchData();
+});
 
 watch(
   computed(() => props.conversationInbox),
-  () => resetAndFetchData()
+  () => {
+    resetAndFetchData();
+  }
 );
 watch(
   computed(() => props.label),
-  () => resetAndFetchData()
+  () => {
+    resetAndFetchData();
+  }
 );
 watch(
   computed(() => props.conversationType),
-  () => resetAndFetchData()
+  () => {
+    resetAndFetchData();
+  }
 );
 
 watch(activeFolder, (newVal, oldVal) => {

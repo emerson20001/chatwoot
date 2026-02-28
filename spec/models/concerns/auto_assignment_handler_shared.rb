@@ -59,5 +59,16 @@ shared_examples_for 'auto_assignment_handler' do
       conversation.save!
       expect(conversation.reload.assignee).to eq(agent2)
     end
+
+    it 'does not reassign when assignee is a bypass-enabled team member without inbox membership' do
+      team_agent = create(:user, email: 'team-agent@example.com', account: account, auto_offline: false)
+      team = create(:team, account: account, allow_inbox_bypass: true)
+      create(:team_member, team: team, user: team_agent)
+      conversation.update!(team: team)
+
+      conversation.update!(assignee: team_agent)
+
+      expect(conversation.reload.assignee).to eq(team_agent)
+    end
   end
 end

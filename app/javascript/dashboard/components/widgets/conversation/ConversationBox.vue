@@ -30,6 +30,10 @@ export default {
       type: Boolean,
       default: true,
     },
+    teamId: {
+      type: [Number, String],
+      default: null,
+    },
   },
   data() {
     return { activeIndex: 0 };
@@ -58,24 +62,44 @@ export default {
     },
   },
   watch: {
-    'currentChat.inbox_id': {
+    'currentChat.id': {
       immediate: true,
-      handler(inboxId) {
-        if (inboxId) {
-          this.$store.dispatch('inboxAssignableAgents/fetch', [inboxId]);
-        }
+      handler() {
+        this.fetchLabels();
+        this.activeIndex = 0;
+        this.fetchAssignableAgents();
       },
     },
-    'currentChat.id'() {
-      this.fetchLabels();
-      this.activeIndex = 0;
+    'currentChat.inbox_id'() {
+      this.fetchAssignableAgents();
+    },
+    'currentChat.team_id'() {
+      this.fetchAssignableAgents();
+    },
+    'currentChat.meta.team.id'() {
+      this.fetchAssignableAgents();
     },
   },
   mounted() {
-    this.fetchLabels();
     this.$store.dispatch('dashboardApps/get');
   },
   methods: {
+    fetchAssignableAgents() {
+      const inboxId = this.currentChat?.inbox_id;
+      if (!inboxId) {
+        return;
+      }
+
+      const routeTeamId = Number(this.teamId || this.$route?.params?.teamId) || null;
+      const teamId =
+        this.currentChat?.team_id ||
+        this.currentChat?.meta?.team?.id ||
+        routeTeamId;
+      this.$store.dispatch('inboxAssignableAgents/fetch', {
+        inboxIds: [inboxId],
+        teamId,
+      });
+    },
     fetchLabels() {
       if (!this.currentChat.id) {
         return;

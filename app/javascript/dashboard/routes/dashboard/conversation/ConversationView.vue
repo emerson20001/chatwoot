@@ -209,6 +209,7 @@ export default {
     <ConversationBox
       v-if="showMessageView"
       :inbox-id="inboxId"
+      :team-id="teamId"
       :is-on-expanded-layout="isOnExpandedLayout"
     >
       <SidepanelSwitch v-if="currentChat.id" />

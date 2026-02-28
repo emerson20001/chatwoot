@@ -70,7 +70,11 @@
       "ADD_AGENTS": "Adding Agents to your Team...",
       "SELECT": "select",
       "SELECT_ALL": "select all agents",
-      "SELECTED_COUNT": "{selected} out of {total} agents selected."
+      "SELECTED_COUNT": "{selected} out of {total} agents selected.",
+      "ALLOW_INBOX_BYPASS": {
+        "LABEL": "Allow team members to interact without inbox membership",
+        "DESC": "When enabled, agents in this team can view and interact with conversations assigned to this team even if they are not members of the inbox."
+      }
     },
     "ADD": {
       "TITLE": "Add agents to team - {teamName}",

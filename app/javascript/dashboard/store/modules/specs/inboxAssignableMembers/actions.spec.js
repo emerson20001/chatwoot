@@ -17,18 +17,34 @@ describe('#actions', () => {
         [types.SET_INBOX_ASSIGNABLE_AGENTS_UI_FLAG, { isFetching: true }],
         [
           types.SET_INBOX_ASSIGNABLE_AGENTS,
-          { inboxId: '1', members: agentsData },
+          { inboxId: '1::no-team', members: agentsData },
         ],
         [types.SET_INBOX_ASSIGNABLE_AGENTS_UI_FLAG, { isFetching: false }],
       ]);
     });
     it('sends correct actions if API is error', async () => {
       axios.get.mockRejectedValue({ message: 'Incorrect header' });
-      await expect(actions.fetch({ commit }, { inboxId: 1 })).rejects.toThrow(
-        Error
-      );
+      await expect(
+        actions.fetch({ commit }, { inboxIds: [1] })
+      ).rejects.toThrow(Error);
       expect(commit.mock.calls).toEqual([
         [types.SET_INBOX_ASSIGNABLE_AGENTS_UI_FLAG, { isFetching: true }],
+        [types.SET_INBOX_ASSIGNABLE_AGENTS_UI_FLAG, { isFetching: false }],
+      ]);
+    });
+
+    it('stores team-only payload when inboxIds are missing', async () => {
+      axios.get.mockResolvedValue({
+        data: { payload: agentsData },
+      });
+      await actions.fetch({ commit }, { teamId: 1 });
+      expect(axios.get).toHaveBeenCalled();
+      expect(commit.mock.calls).toEqual([
+        [types.SET_INBOX_ASSIGNABLE_AGENTS_UI_FLAG, { isFetching: true }],
+        [
+          types.SET_INBOX_ASSIGNABLE_AGENTS,
+          { inboxId: 'no-inbox::1', members: agentsData },
+        ],
         [types.SET_INBOX_ASSIGNABLE_AGENTS_UI_FLAG, { isFetching: false }],
       ]);
     });

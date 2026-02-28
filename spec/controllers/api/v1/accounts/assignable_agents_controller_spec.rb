@@ -63,5 +63,41 @@ RSpec.describe 'Assignable Agents API', type: :request do
         expect(response_data.pluck(:role)).to include('agent', 'administrator')
       end
     end
+
+    context 'when team bypass is enabled' do
+      let!(:team) { create(:team, account: account, allow_inbox_bypass: true) }
+
+      before do
+        create(:team_member, team: team, user: agent2)
+      end
+
+      it 'allows team members without inbox membership to fetch assignable agents' do
+        get "/api/v1/accounts/#{account.id}/assignable_agents",
+            params: { inbox_ids: [inbox1.id, inbox2.id], team_id: team.id },
+            headers: agent2.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:success)
+        response_data = JSON.parse(response.body, symbolize_names: true)[:payload]
+        expect(response_data.pluck(:id)).to include(agent2.id)
+      end
+    end
+
+    context 'when team bypass is disabled' do
+      let!(:team) { create(:team, account: account, allow_inbox_bypass: false) }
+
+      before do
+        create(:team_member, team: team, user: agent2)
+      end
+
+      it 'returns unauthorized for non-inbox users' do
+        get "/api/v1/accounts/#{account.id}/assignable_agents",
+            params: { inbox_ids: [inbox1.id, inbox2.id], team_id: team.id },
+            headers: agent2.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
   end
 end

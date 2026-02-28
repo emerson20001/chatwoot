@@ -155,7 +155,37 @@ export default {
       return false;
     },
   },
+  watch: {
+    'currentChat.id': {
+      immediate: true,
+      handler() {
+        this.fetchAssignableAgents();
+      },
+    },
+    'currentChat.inbox_id'() {
+      this.fetchAssignableAgents();
+    },
+    'currentChat.meta.team.id'() {
+      this.fetchAssignableAgents();
+    },
+  },
   methods: {
+    fetchAssignableAgents() {
+      const inboxId = this.currentChat?.inbox_id;
+      if (!inboxId) {
+        return;
+      }
+
+      const routeTeamId = Number(this.$route?.params?.teamId) || null;
+      const teamId =
+        this.currentChat?.team_id ||
+        this.currentChat?.meta?.team?.id ||
+        routeTeamId;
+      this.$store.dispatch('inboxAssignableAgents/fetch', {
+        inboxIds: [inboxId],
+        teamId,
+      });
+    },
     onSelfAssign() {
       const {
         account_id,

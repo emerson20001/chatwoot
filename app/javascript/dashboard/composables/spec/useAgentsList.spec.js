@@ -12,6 +12,12 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+vi.mock('vue-router', () => ({
+  useRoute: () => ({
+    params: {},
+  }),
+}));
+
 vi.mock('dashboard/composables/store');
 vi.mock('dashboard/helper/agentHelper');
 

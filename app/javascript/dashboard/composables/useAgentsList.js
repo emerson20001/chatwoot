@@ -1,6 +1,7 @@
 import { computed } from 'vue';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 import {
   getAgentsByUpdatedPresence,
   getSortedAgentsByAvailability,
@@ -14,6 +15,7 @@ import {
  */
 export function useAgentsList(includeNoneAgent = true) {
   const { t } = useI18n();
+  const route = useRoute();
   const currentUser = useMapGetter('getCurrentUser');
   const currentChat = useMapGetter('getSelectedChat');
   const currentAccountId = useMapGetter('getCurrentAccountId');
@@ -35,11 +37,32 @@ export function useAgentsList(includeNoneAgent = true) {
     email: 'None',
   });
 
+  const prioritizeCurrentUser = agents => {
+    const currentUserAgent = agents.find(
+      agent => agent.id === currentUser.value?.id
+    );
+    if (!currentUserAgent) {
+      return agents;
+    }
+
+    return [
+      currentUserAgent,
+      ...agents.filter(agent => agent.id !== currentUserAgent.id),
+    ];
+  };
+
   /**
    * @type {import('vue').ComputedRef<Array>}
    */
   const assignableAgents = computed(() => {
-    return inboxId.value ? assignable.value(inboxId.value) : [];
+    const routeTeamId = Number(route?.params?.teamId) || null;
+    const teamId =
+      currentChat.value?.team_id ||
+      currentChat.value?.meta?.team?.id ||
+      routeTeamId;
+    return inboxId.value
+      ? assignable.value({ inboxIds: inboxId.value, teamId })
+      : [];
   });
 
   /**
@@ -56,10 +79,13 @@ export function useAgentsList(includeNoneAgent = true) {
     const filteredAgentsByAvailability = getSortedAgentsByAvailability(
       agentsByUpdatedPresence
     );
+    const prioritizedAgents = prioritizeCurrentUser(
+      filteredAgentsByAvailability
+    );
 
     return [
       ...(includeNoneAgent && isAgentSelected.value ? [createNoneAgent()] : []),
-      ...filteredAgentsByAvailability,
+      ...prioritizedAgents,
     ];
   });
 

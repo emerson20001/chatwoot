@@ -45,6 +45,7 @@ services:
       - VERBOSE_QUERY_LOGS=false
       - ASSETS_DEBUG=false
       - LOG_LEVEL=info
+      - DISABLE_MINI_PROFILER=true
       - NODE_ENV=development
       - RAILS_ENV=development
     entrypoint: docker/entrypoints/rails.sh

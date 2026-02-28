@@ -27,6 +27,14 @@ module AutoAssignmentHandler
     return false unless inbox.enable_auto_assignment?
 
     # run only if assignee is blank or doesn't have access to inbox
-    assignee.blank? || inbox.members.exclude?(assignee)
+    assignee.blank? || (inbox.members.exclude?(assignee) && !team_inbox_bypass_assignee?)
   end
+
+  def team_inbox_bypass_assignee?
+    return false if assignee.blank?
+    return false unless team&.allow_inbox_bypass?
+
+    team.members.exists?(id: assignee.id)
+  end
+
 end

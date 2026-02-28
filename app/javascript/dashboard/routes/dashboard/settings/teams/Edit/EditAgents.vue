@@ -28,6 +28,7 @@ export default {
     return {
       selectedAgents: [],
       isCreating: false,
+      allowInboxBypass: false,
     };
   },
 
@@ -66,6 +67,7 @@ export default {
       });
       const members = this.teamMembers.map(item => item.id);
       this.updateSelectedAgents(members);
+      this.allowInboxBypass = this.currentTeam.allow_inbox_bypass ?? false;
     } catch {
       this.updateSelectedAgents([]);
     }
@@ -81,6 +83,10 @@ export default {
       const { teamId, selectedAgents } = this;
 
       try {
+        await this.$store.dispatch('teams/update', {
+          id: teamId,
+          allow_inbox_bypass: this.allowInboxBypass,
+        });
         await this.$store.dispatch('teamMembers/update', {
           teamId,
           agentsList: selectedAgents,
@@ -113,6 +119,23 @@ export default {
           :header-title="headerTitle"
           :header-content="$t('TEAMS_SETTINGS.EDIT_FLOW.AGENTS.DESC')"
         />
+      </div>
+
+      <div class="w-full mb-4">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            id="allow-inbox-bypass"
+            v-model="allowInboxBypass"
+            type="checkbox"
+            class="size-4 rounded border-slate-300 text-woot-500 dark:border-slate-600"
+          />
+          <span class="text-sm text-slate-700 dark:text-slate-300">
+            {{ $t('TEAMS_SETTINGS.AGENTS.ALLOW_INBOX_BYPASS.LABEL') }}
+          </span>
+        </label>
+        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400 pl-6">
+          {{ $t('TEAMS_SETTINGS.AGENTS.ALLOW_INBOX_BYPASS.DESC') }}
+        </p>
       </div>
 
       <div class="w-full">

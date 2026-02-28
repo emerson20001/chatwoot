@@ -36,6 +36,15 @@ class ConversationParticipant < ApplicationRecord
   end
 
   def ensure_inbox_access
+    return if team_inbox_bypass?
+
     errors.add(:user, 'must have inbox access') if conversation && conversation.inbox.assignable_agents.exclude?(user)
+  end
+
+  def team_inbox_bypass?
+    team = conversation&.team
+    return false unless team&.allow_inbox_bypass?
+
+    team.members.exists?(id: user.id)
   end
 end

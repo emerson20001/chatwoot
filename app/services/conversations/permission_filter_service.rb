@@ -16,7 +16,12 @@ class Conversations::PermissionFilterService
   private
 
   def accessible_conversations
-    conversations.where(inbox: user.inboxes.where(account_id: account.id))
+    inbox_scope = conversations.where(inbox: user.inboxes.where(account_id: account.id))
+
+    team_ids = user.teams.where(account_id: account.id, allow_inbox_bypass: true).pluck(:id)
+    return inbox_scope if team_ids.empty?
+
+    inbox_scope.or(conversations.where(team_id: team_ids))
   end
 
   def account_user

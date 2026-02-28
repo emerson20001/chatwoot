@@ -22,7 +22,6 @@ const props = defineProps({
   hideThumbnail: { type: Boolean, default: false },
   teamId: { type: [String, Number], default: 0 },
   foldersId: { type: [String, Number], default: 0 },
-  showAssignee: { type: Boolean, default: false },
   conversationType: { type: String, default: '' },
   selected: { type: Boolean, default: false },
   compact: { type: Boolean, default: false },
@@ -49,6 +48,9 @@ const store = useStore();
 
 const hovered = ref(false);
 const showContextMenu = ref(false);
+const showAssignmentInfo = ref(false);
+const badgeRef = ref(null);
+const popupPosition = ref({ top: 0, left: 0 });
 const contextMenu = ref({
   x: null,
   y: null,
@@ -61,14 +63,18 @@ const accountId = useMapGetter('getCurrentAccountId');
 
 const chatMetadata = computed(() => props.chat.meta || {});
 
-const assignee = computed(() => chatMetadata.value.assignee || {});
-
 const senderId = computed(() => chatMetadata.value.sender?.id);
 
 const currentContact = computed(() => {
   return senderId.value
     ? store.getters['contacts/getContact'](senderId.value)
     : {};
+});
+
+const contactDisplayName = computed(() => {
+  const name = (currentContact.value?.name || '').trim();
+  if (name) return name;
+  return `Visitante-${props.chat.display_id || props.chat.id}`;
 });
 
 const isActiveChat = computed(() => {
@@ -103,14 +109,21 @@ const showInboxName = computed(() => {
 });
 
 const showMetaSection = computed(() => {
-  return (
-    showInboxName.value ||
-    (props.showAssignee && assignee.value.name) ||
-    props.chat.priority
-  );
+  return showInboxName.value;
 });
 
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
+
+const assignments = computed(() => {
+  const list = [];
+  const team = chatMetadata.value.team;
+  const agent = chatMetadata.value.assignee;
+  if (agent?.name) list.push({ label: agent.name, icon: 'person' });
+  if (team?.name) list.push({ label: team.name, icon: 'people' });
+  return list;
+});
+
+const hasAssignments = computed(() => assignments.value.length > 0);
 
 const showLabelsSection = computed(() => {
   return props.chat.labels?.length > 0 || hasSlaPolicyId.value;
@@ -230,6 +243,17 @@ const deleteConversation = () => {
   emit('deleteConversation', props.chat.id);
   closeContextMenu();
 };
+
+const onBadgeEnter = () => {
+  if (!badgeRef.value) return;
+  const rect = badgeRef.value.getBoundingClientRect();
+  popupPosition.value = { top: rect.bottom + 4, left: rect.left };
+  showAssignmentInfo.value = true;
+};
+
+const onBadgeLeave = () => {
+  showAssignmentInfo.value = false;
+};
 </script>
 
 <template>
@@ -256,7 +280,7 @@ const deleteConversation = () => {
     >
       <Avatar
         v-if="!hideThumbnail"
-        :name="currentContact.name"
+        :name="contactDisplayName"
         :src="currentContact.thumbnail"
         :size="32"
         :status="currentContact.availability_status"
@@ -294,27 +318,13 @@ const deleteConversation = () => {
         }"
       >
         <InboxName v-if="showInboxName" :inbox="inbox" class="flex-1 min-w-0" />
-        <div
-          class="flex items-center gap-2 flex-shrink-0"
-          :class="{
-            'flex-1 justify-between': !showInboxName,
-          }"
-        >
-          <span
-            v-if="showAssignee && assignee.name"
-            class="text-n-slate-11 text-xs font-medium leading-3 py-0.5 px-0 inline-flex items-center truncate"
-          >
-            <fluent-icon icon="person" size="12" class="text-n-slate-11" />
-            {{ assignee.name }}
-          </span>
-          <PriorityMark :priority="chat.priority" class="flex-shrink-0" />
-        </div>
+
       </div>
       <h4
         class="conversation--user text-sm my-0 mx-2 capitalize pt-0.5 text-ellipsis overflow-hidden whitespace-nowrap flex-1 min-w-0 ltr:pr-16 rtl:pl-16 text-n-slate-12"
         :class="hasUnread ? 'font-semibold' : 'font-medium'"
       >
-        {{ currentContact.name }}
+        {{ contactDisplayName }}
       </h4>
       <VoiceCallStatus
         v-if="voiceCallData.status"
@@ -346,17 +356,56 @@ const deleteConversation = () => {
         </span>
       </p>
       <div
-        class="absolute flex flex-col ltr:right-4 rtl:left-4"
-        :class="showMetaSection ? 'top-8' : 'top-4'"
+        class="absolute flex flex-col items-end ltr:right-4 rtl:left-4 top-2.5"
       >
-        <span class="ml-auto font-normal leading-4 text-xxs text-n-slate-11">
+        <div
+          v-if="chat.priority || hasAssignments"
+          class="flex items-center gap-1 mb-0.5"
+        >
+          <PriorityMark :priority="chat.priority" class="flex-shrink-0" />
+          <div
+            v-if="hasAssignments"
+            ref="badgeRef"
+            @mouseenter="onBadgeEnter"
+            @mouseleave="onBadgeLeave"
+            @click.stop
+          >
+            <span
+              class="flex items-center justify-center w-4 h-4 rounded-full bg-orange-100 dark:bg-orange-900/30 cursor-default select-none"
+            >
+              <span class="text-orange-500 font-bold leading-none" style="font-size:9px">i</span>
+            </span>
+            <Teleport to="body">
+              <div
+                v-if="showAssignmentInfo"
+                class="fixed z-[9999] bg-white dark:bg-n-slate-2 shadow-lg rounded-lg border border-n-weak py-1.5 px-2 min-w-[130px]"
+                :style="{ top: popupPosition.top + 'px', left: popupPosition.left + 'px' }"
+              >
+                <div
+                  v-for="(item, index) in assignments"
+                  :key="index"
+                  class="flex items-center gap-1.5 py-0.5 text-xs"
+                  :class="
+                    index === 0
+                      ? 'text-orange-500 font-medium'
+                      : 'text-n-slate-11'
+                  "
+                >
+                  <fluent-icon :icon="item.icon" size="10" class="flex-shrink-0" />
+                  <span class="truncate max-w-[110px]">{{ item.label }}</span>
+                </div>
+              </div>
+            </Teleport>
+          </div>
+        </div>
+        <span class="font-normal leading-4 text-xxs text-n-slate-11">
           <TimeAgo
             :last-activity-timestamp="chat.timestamp"
             :created-at-timestamp="chat.created_at"
           />
         </span>
         <span
-          class="shadow-lg rounded-full text-xxs font-semibold h-4 leading-4 ltr:ml-auto rtl:mr-auto mt-1 min-w-[1rem] px-1.5 py-0 text-center text-white bg-n-teal-9"
+          class="shadow-lg rounded-full text-xxs font-semibold h-4 leading-4 mt-1 min-w-[1rem] px-1.5 py-0 text-center text-white bg-n-teal-9"
           :class="hasUnread ? 'block' : 'hidden'"
         >
           {{ unreadCount > 9 ? '9+' : unreadCount }}
@@ -383,6 +432,7 @@ const deleteConversation = () => {
         :inbox-id="inbox.id"
         :priority="chat.priority"
         :chat-id="chat.id"
+        :team-id="chat.meta && chat.meta.team ? chat.meta.team.id : Number(teamId) || null"
         :has-unread-messages="hasUnread"
         :conversation-url="conversationPath"
         :allowed-options="allowedContextMenuOptions"

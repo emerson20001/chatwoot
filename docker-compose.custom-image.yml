@@ -1,6 +1,6 @@
 services:
   custom_web:
-    image: ghcr.io/emerson20001/chatwoot-custom:v4.10.0-tavindo-2
+    image: ghcr.io/emerson20001/chatwoot-custom:v4.10.0-tavindo-2.9
     container_name: chatwoot-custom-web
     env_file: .env
     depends_on:
@@ -17,7 +17,7 @@ services:
     command: ["bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
 
   custom_sidekiq:
-    image: ghcr.io/emerson20001/chatwoot-custom:v4.10.0-tavindo-2
+    image: ghcr.io/emerson20001/chatwoot-custom:v4.10.0-tavindo-2.9
     container_name: chatwoot-custom-sidekiq
     env_file: .env
     depends_on:

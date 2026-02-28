@@ -61,6 +61,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    teamId: {
+      type: Number,
+      default: null,
+    },
   },
   emits: [
     'updateConversation',
@@ -183,7 +187,7 @@ export default {
     filteredAgentOnAvailability() {
       const agents = this.$store.getters[
         'inboxAssignableAgents/getAssignableAgents'
-      ](this.inboxId);
+      ]({ inboxIds: this.inboxId, teamId: this.teamId });
       const agentsByUpdatedPresence = getAgentsByUpdatedPresence(
         agents,
         this.currentUser,
@@ -195,6 +199,24 @@ export default {
       return filteredAgents;
     },
     assignableAgents() {
+      const selfAssignOption = {
+        confirmed: true,
+        name: this.$t('CONVERSATION.ASSIGN_TO_ME'),
+        id: this.currentUser?.id,
+        role: 'agent',
+        account_id: this.currentUser?.account_id,
+        email: this.currentUser?.email,
+        thumbnail: this.currentUser?.avatar_url,
+        availability_status:
+          this.currentUser?.accounts?.find(
+            account => account.id === this.currentAccountId
+          )?.availability_status || this.currentUser?.availability_status,
+      };
+      const agentsExcludingCurrentUser =
+        this.filteredAgentOnAvailability.filter(
+          agent => agent.id !== this.currentUser?.id
+        );
+
       return [
         {
           confirmed: true,
@@ -204,7 +226,8 @@ export default {
           account_id: 0,
           email: 'None',
         },
-        ...this.filteredAgentOnAvailability,
+        ...(selfAssignOption.id ? [selfAssignOption] : []),
+        ...agentsExcludingCurrentUser,
       ];
     },
     showSnooze() {
@@ -213,7 +236,10 @@ export default {
     },
   },
   mounted() {
-    this.$store.dispatch('inboxAssignableAgents/fetch', [this.inboxId]);
+    this.$store.dispatch('inboxAssignableAgents/fetch', {
+      inboxIds: [this.inboxId],
+      teamId: this.teamId,
+    });
   },
   methods: {
     isAllowed(keys) {
