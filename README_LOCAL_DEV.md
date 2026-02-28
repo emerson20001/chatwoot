@@ -122,7 +122,11 @@ RAILS_ENV=development bundle exec rails console
 docker compose stop rails sidekiq
 cat /caminho/backup-chatwoot.sql | docker compose exec -T postgres sh -lc 'export PGPASSWORD="$POSTGRES_PASSWORD"; pg_restore -U postgres -d chatwoot_dev --clean --if-exists --no-owner --no-privileges'
 docker compose start rails sidekiq
-docker compose exec -T rails bundle exec rails db:migrate
+```
+
+- Rodar migration com proteção (backup + rollback automático em perda crítica):
+```bash
+./script/safe_migrate_docker.sh
 ```
 
 ## 8) Widget no WordPress (snippet padrão Chatwoot)

@@ -22,8 +22,8 @@ echo "Database ready to accept connections."
 # Install gems only when needed to keep restart time low.
 bundle check || bundle install
 
-# Keep local Docker resilient: create/migrate DB on every boot if needed.
-if [ "${AUTO_PREPARE_DB:-true}" = "true" ]; then
+# Keep local Docker resilient only when explicitly enabled.
+if [ "${AUTO_PREPARE_DB:-false}" = "true" ]; then
   bundle exec rails db:version >/dev/null 2>&1 || bundle exec rails db:chatwoot_prepare
 fi
 
