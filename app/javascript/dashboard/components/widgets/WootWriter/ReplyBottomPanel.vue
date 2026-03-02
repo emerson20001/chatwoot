@@ -277,6 +277,22 @@ export default {
         : this.$t('CONVERSATION.REPLYBOX.QUOTED_REPLY.ENABLE_TOOLTIP');
     },
   },
+  watch: {
+    showActionMenu(newVal) {
+      if (newVal) {
+        document.documentElement.style.overflow = 'hidden';
+      } else if (!this.showSignaturePopover) {
+        document.documentElement.style.overflow = '';
+      }
+    },
+    showSignaturePopover(newVal) {
+      if (newVal) {
+        document.documentElement.style.overflow = 'hidden';
+      } else if (!this.showActionMenu) {
+        document.documentElement.style.overflow = '';
+      }
+    },
+  },
   mounted() {
     ActiveStorage.start();
   },
