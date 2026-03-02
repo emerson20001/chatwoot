@@ -426,7 +426,7 @@ export default {
       @click="toggleAudioRecorderPlayPause"
     />
     <NextButton
-      :label="sendButtonText"
+      icon="i-ph-paper-plane-tilt"
       type="submit"
       sm
       :color="isNote ? 'amber' : 'blue'"
