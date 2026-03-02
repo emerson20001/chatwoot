@@ -135,6 +135,7 @@ export default {
       useUISettings();
 
     const uploadRef = ref(false);
+    const showActionMenu = ref(false);
 
     const keyboardEvents = {
       '$mod+Alt+KeyA': {
@@ -158,6 +159,7 @@ export default {
       setSignatureFlagForInbox,
       fetchSignatureFlagFromUISettings,
       uploadRef,
+      showActionMenu,
     };
   },
   data() {
@@ -277,150 +279,167 @@ export default {
 </script>
 
 <template>
-  <div class="flex justify-between p-3" :class="wrapClass">
-    <div class="left-wrap">
+  <div class="flex justify-between items-center p-3 gap-2" :class="wrapClass">
+    <div class="relative">
       <NextButton
-        v-tooltip.top-end="$t('CONVERSATION.REPLYBOX.TIP_EMOJI_ICON')"
-        icon="i-ph-smiley-sticker"
+        v-tooltip.top-end="'Mais opções'"
+        icon="i-ph-plus"
         slate
         faded
         sm
-        @click="toggleEmojiPicker"
+        @click="showActionMenu = !showActionMenu"
       />
-      <FileUpload
-        ref="uploadRef"
-        v-tooltip.top-end="$t('CONVERSATION.REPLYBOX.TIP_ATTACH_ICON')"
-        input-id="conversationAttachment"
-        :size="4096 * 4096"
-        :accept="allowedFileTypes"
-        :multiple="enableMultipleFileUpload"
-        :drop="enableDragAndDrop"
-        :drop-directory="false"
-        :data="{
-          direct_upload_url: '/rails/active_storage/direct_uploads',
-          direct_upload: true,
-        }"
-        @input-file="onFileUpload"
-      >
-        <NextButton
-          v-if="showAttachButton"
-          v-tooltip.top-end="$t('CONVERSATION.REPLYBOX.TIP_ATTACH_ICON')"
-          icon="i-ph-paperclip"
-          slate
-          faded
-          sm
-        />
-      </FileUpload>
-      <NextButton
-        v-if="showAudioRecorderButton"
-        v-tooltip.top-end="$t('CONVERSATION.REPLYBOX.TIP_AUDIORECORDER_ICON')"
-        :icon="!isRecordingAudio ? 'i-ph-microphone' : 'i-ph-microphone-slash'"
-        slate
-        faded
-        sm
-        @click="toggleAudioRecorder"
-      />
-      <NextButton
-        v-if="showAudioPlayStopButton"
-        :icon="audioRecorderPlayStopIcon"
-        slate
-        faded
-        sm
-        :label="recordingAudioDurationText"
-        @click="toggleAudioRecorderPlayPause"
-      />
-      <NextButton
-        v-if="showMessageSignatureButton"
-        v-tooltip.top-end="signatureToggleTooltip"
-        icon="i-ph-signature"
-        slate
-        faded
-        sm
-        @click="toggleMessageSignature"
-      />
-      <NextButton
-        v-if="showQuotedReplyToggle"
-        v-tooltip.top-end="quotedReplyToggleTooltip"
-        icon="i-ph-quotes"
-        :variant="quotedReplyEnabled ? 'solid' : 'faded'"
-        color="slate"
-        sm
-        :aria-pressed="quotedReplyEnabled"
-        @click="$emit('toggleQuotedReply')"
-      />
-      <NextButton
-        v-if="enableWhatsAppTemplates"
-        v-tooltip.top-end="$t('CONVERSATION.FOOTER.WHATSAPP_TEMPLATES')"
-        icon="i-ph-whatsapp-logo"
-        slate
-        faded
-        sm
-        @click="$emit('selectWhatsappTemplate')"
-      />
-      <NextButton
-        v-if="enableContentTemplates"
-        v-tooltip.top-end="'Content Templates'"
-        icon="i-ph-whatsapp-logo"
-        slate
-        faded
-        sm
-        @click="$emit('selectContentTemplate')"
-      />
-      <VideoCallButton
-        v-if="(isAWebWidgetInbox || isAPIInbox) && !isOnPrivateNote"
-        :conversation-id="conversationId"
-      />
-      <AIAssistanceButton
-        v-if="!isFetchingAppIntegrations"
-        :conversation-id="conversationId"
-        :is-private-note="isOnPrivateNote"
-        :message="message"
-        @replace-text="replaceText"
-      />
-      <transition name="modal-fade">
+      <transition name="fade">
         <div
-          v-show="uploadRef && uploadRef.dropActive"
-          class="flex fixed top-0 right-0 bottom-0 left-0 z-20 flex-col gap-2 justify-center items-center w-full h-full text-n-slate-12 bg-modal-backdrop-light dark:bg-modal-backdrop-dark"
+          v-if="showActionMenu"
+          class="absolute bottom-full left-0 mb-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 min-w-max py-1"
         >
-          <fluent-icon icon="cloud-backup" size="40" />
-          <h4 class="text-2xl break-words text-n-slate-12">
-            {{ $t('CONVERSATION.REPLYBOX.DRAG_DROP') }}
-          </h4>
+          <NextButton
+            v-tooltip.top-start="$t('CONVERSATION.REPLYBOX.TIP_EMOJI_ICON')"
+            icon="i-ph-smiley-sticker"
+            slate
+            ghost
+            sm
+            class="w-full justify-start px-3"
+            @click="toggleEmojiPicker(); showActionMenu = false"
+          />
+          <FileUpload
+            ref="uploadRef"
+            v-tooltip.top-start="$t('CONVERSATION.REPLYBOX.TIP_ATTACH_ICON')"
+            input-id="conversationAttachment"
+            :size="4096 * 4096"
+            :accept="allowedFileTypes"
+            :multiple="enableMultipleFileUpload"
+            :drop="enableDragAndDrop"
+            :drop-directory="false"
+            :data="{
+              direct_upload_url: '/rails/active_storage/direct_uploads',
+              direct_upload: true,
+            }"
+            @input-file="onFileUpload"
+          >
+            <NextButton
+              v-if="showAttachButton"
+              v-tooltip.top-start="$t('CONVERSATION.REPLYBOX.TIP_ATTACH_ICON')"
+              icon="i-ph-paperclip"
+              slate
+              ghost
+              sm
+              class="w-full justify-start px-3"
+            />
+          </FileUpload>
+          <NextButton
+            v-if="showMessageSignatureButton"
+            v-tooltip.top-start="signatureToggleTooltip"
+            icon="i-ph-signature"
+            slate
+            ghost
+            sm
+            class="w-full justify-start px-3"
+            @click="toggleMessageSignature(); showActionMenu = false"
+          />
+          <AIAssistanceButton
+            v-if="!isFetchingAppIntegrations"
+            :conversation-id="conversationId"
+            :is-private-note="isOnPrivateNote"
+            :message="message"
+            class="w-full"
+            @replace-text="replaceText"
+          />
+          <NextButton
+            v-if="showAudioRecorderButton"
+            v-tooltip.top-start="$t('CONVERSATION.REPLYBOX.TIP_AUDIORECORDER_ICON')"
+            :icon="!isRecordingAudio ? 'i-ph-microphone' : 'i-ph-microphone-slash'"
+            slate
+            ghost
+            sm
+            class="w-full justify-start px-3"
+            @click="toggleAudioRecorder(); showActionMenu = false"
+          />
+          <NextButton
+            v-if="showAudioPlayStopButton"
+            :icon="audioRecorderPlayStopIcon"
+            slate
+            ghost
+            sm
+            :label="recordingAudioDurationText"
+            class="w-full justify-start px-3"
+            @click="toggleAudioRecorderPlayPause"
+          />
+          <NextButton
+            v-if="showQuotedReplyToggle"
+            v-tooltip.top-start="quotedReplyToggleTooltip"
+            icon="i-ph-quotes"
+            :variant="quotedReplyEnabled ? 'solid' : 'ghost'"
+            color="slate"
+            sm
+            class="w-full justify-start px-3"
+            :aria-pressed="quotedReplyEnabled"
+            @click="$emit('toggleQuotedReply'); showActionMenu = false"
+          />
+          <NextButton
+            v-if="enableWhatsAppTemplates"
+            v-tooltip.top-start="$t('CONVERSATION.FOOTER.WHATSAPP_TEMPLATES')"
+            icon="i-ph-whatsapp-logo"
+            slate
+            ghost
+            sm
+            class="w-full justify-start px-3"
+            @click="$emit('selectWhatsappTemplate'); showActionMenu = false"
+          />
+          <NextButton
+            v-if="enableContentTemplates"
+            v-tooltip.top-start="'Content Templates'"
+            icon="i-ph-whatsapp-logo"
+            slate
+            ghost
+            sm
+            class="w-full justify-start px-3"
+            @click="$emit('selectContentTemplate'); showActionMenu = false"
+          />
+          <VideoCallButton
+            v-if="(isAWebWidgetInbox || isAPIInbox) && !isOnPrivateNote"
+            :conversation-id="conversationId"
+            class="w-full"
+          />
+          <NextButton
+            v-if="enableInsertArticleInReply"
+            v-tooltip.top-start="$t('HELP_CENTER.ARTICLE_SEARCH.OPEN_ARTICLE_SEARCH')"
+            icon="i-ph-article-ny-times"
+            slate
+            ghost
+            sm
+            class="w-full justify-start px-3"
+            @click="toggleInsertArticle(); showActionMenu = false"
+          />
         </div>
       </transition>
-      <NextButton
-        v-if="enableInsertArticleInReply"
-        v-tooltip.top-end="$t('HELP_CENTER.ARTICLE_SEARCH.OPEN_ARTICLE_SEARCH')"
-        icon="i-ph-article-ny-times"
-        slate
-        faded
-        sm
-        @click="toggleInsertArticle"
-      />
     </div>
-    <div class="right-wrap">
-      <NextButton
-        :label="sendButtonText"
-        type="submit"
-        sm
-        :color="isNote ? 'amber' : 'blue'"
-        :disabled="isSendDisabled"
-        class="flex-shrink-0"
-        @click="onSend"
-      />
-    </div>
+    <transition name="modal-fade">
+      <div
+        v-show="uploadRef && uploadRef.dropActive"
+        class="flex fixed top-0 right-0 bottom-0 left-0 z-20 flex-col gap-2 justify-center items-center w-full h-full text-n-slate-12 bg-modal-backdrop-light dark:bg-modal-backdrop-dark"
+      >
+        <fluent-icon icon="cloud-backup" size="40" />
+        <h4 class="text-2xl break-words text-n-slate-12">
+          {{ $t('CONVERSATION.REPLYBOX.DRAG_DROP') }}
+        </h4>
+      </div>
+    </transition>
+    <div class="flex-1" />
+    <NextButton
+      :label="sendButtonText"
+      type="submit"
+      sm
+      :color="isNote ? 'amber' : 'blue'"
+      :disabled="isSendDisabled"
+      class="flex-shrink-0"
+      @click="onSend"
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.left-wrap {
-  @apply items-center flex gap-2;
-}
-
-.right-wrap {
-  @apply flex;
-}
-
 :deep(.file-uploads ){
   label {
     @apply cursor-pointer;
@@ -428,6 +447,22 @@ export default {
 
   &:hover button {
     @apply enabled:bg-n-slate-9/20;
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  @apply transition-opacity duration-150;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  @apply opacity-0;
+}
+
+div[class*='absolute'] {
+  &:has(> :first-child) {
+    @apply divide-y divide-n-weak;
   }
 }
 </style>
