@@ -407,6 +407,7 @@ export default {
               :conversation-id="conversationId"
               :is-private-note="isOnPrivateNote"
               :message="message"
+              icon-only
               @replace-text="replaceText"
             />
           </div>

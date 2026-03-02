@@ -1,6 +1,13 @@
 <script setup>
 import NextButton from 'dashboard/components-next/button/Button.vue';
 
+defineProps({
+  iconOnly: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const emit = defineEmits(['open']);
 
 const onClick = () => {
@@ -11,17 +18,28 @@ const onClick = () => {
 <template>
   <div class="relative">
     <NextButton
+      v-if="!iconOnly"
       class="cta-btn cta-btn-light dark:cta-btn-dark hover:cta-btn-light-hover dark:hover:cta-btn-dark-hover"
       :label="$t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST')"
       icon="i-ph-magic-wand"
       sm
       @click="onClick"
     />
+    <NextButton
+      v-else
+      icon="i-ph-magic-wand"
+      slate
+      ghost
+      sm
+      @click="onClick"
+    />
 
     <div
+      v-if="!iconOnly"
       class="radar-ping-animation absolute top-0 right-0 -mt-1 -mr-1 rounded-full w-3 h-3 bg-n-brand"
     />
     <div
+      v-if="!iconOnly"
       class="absolute top-0 right-0 -mt-1 -mr-1 rounded-full w-3 h-3 bg-n-brand opacity-50"
     />
   </div>

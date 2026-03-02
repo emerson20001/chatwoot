@@ -19,6 +19,12 @@ export default {
     AICTAModal,
     AIAssistanceCTAButton,
   },
+  props: {
+    iconOnly: {
+      type: Boolean,
+      default: false,
+    },
+  },
   emits: ['replaceText'],
   setup(props, { emit }) {
     const { uiSettings, updateUISettings } = useUISettings();
@@ -128,14 +134,15 @@ export default {
     <div v-if="isAIIntegrationEnabled" class="relative">
       <AIAssistanceCTAButton
         v-if="shouldShowAIAssistCTAButton"
+        :icon-only="iconOnly"
         @open="openAIAssist"
       />
       <NextButton
         v-else
-        v-tooltip.top-end="$t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST')"
+        v-tooltip.top-end="!iconOnly ? $t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST') : ''"
         icon="i-ph-magic-wand"
-        slate
-        faded
+        :variant="iconOnly ? 'ghost' : 'faded'"
+        color="slate"
         sm
         @click="openAIAssist"
       />
@@ -151,7 +158,7 @@ export default {
       </woot-modal>
     </div>
     <div v-else-if="shouldShowAIAssistCTAButtonForAdmin" class="relative">
-      <AIAssistanceCTAButton @click="openAICta" />
+      <AIAssistanceCTAButton :icon-only="iconOnly" @click="openAICta" />
       <woot-modal v-model:show="showAICtaModal" @close="hideAICtaModal">
         <AICTAModal @close="hideAICtaModal" />
       </woot-modal>
