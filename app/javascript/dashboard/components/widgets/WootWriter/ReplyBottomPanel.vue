@@ -292,7 +292,7 @@ export default {
       <transition name="fade">
         <div
           v-if="showActionMenu"
-          class="absolute bottom-full left-0 mb-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 min-w-max py-1"
+          class="absolute bottom-full left-0 mb-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 py-1"
         >
           <NextButton
             v-tooltip.top-start="$t('CONVERSATION.REPLYBOX.TIP_EMOJI_ICON')"
