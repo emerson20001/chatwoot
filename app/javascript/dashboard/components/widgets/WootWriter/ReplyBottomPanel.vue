@@ -345,6 +345,7 @@ export default {
             slate
             ghost
             sm
+            class="w-full justify-start px-3"
           />
           <NextButton
             v-if="showQuotedReplyToggle"
@@ -380,7 +381,7 @@ export default {
           <VideoCallButton
             v-if="(isAWebWidgetInbox || isAPIInbox) && !isOnPrivateNote"
             :conversation-id="conversationId"
-            class="w-full"
+            class="w-full justify-start px-3"
           />
           <NextButton
             v-if="enableInsertArticleInReply"
