@@ -254,6 +254,10 @@ export default {
       return !this.isOnPrivateNote && this.channelType === INBOX_TYPES.EMAIL;
     },
     sendWithSignature() {
+      // Signatures are only supported for email inboxes
+      if (this.channelType !== INBOX_TYPES.EMAIL) {
+        return false;
+      }
       // channelType is sourced from inboxMixin
       return this.fetchSignatureFlagFromUISettings(this.channelType);
     },
