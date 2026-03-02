@@ -365,7 +365,8 @@ export default {
             />
             <div
               v-if="showSignaturePopover && isSignatureEnabledForInbox && !isSignatureAvailable"
-              class="signature-popover absolute left-full top-0 -translate-y-1/2 ml-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 p-3 w-64"
+              class="signature-popover absolute left-full ml-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 p-3 w-64"
+              style="top: -50px; right: auto;"
               @click.stop
             >
               <p class="text-sm mb-2">
