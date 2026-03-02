@@ -399,13 +399,17 @@ export default {
               />
             </div>
           </div>
-          <AIAssistanceButton
+          <div
             v-if="!isFetchingAppIntegrations"
-            :conversation-id="conversationId"
-            :is-private-note="isOnPrivateNote"
-            :message="message"
-            @replace-text="replaceText"
-          />
+            class="w-full justify-start px-3"
+          >
+            <AIAssistanceButton
+              :conversation-id="conversationId"
+              :is-private-note="isOnPrivateNote"
+              :message="message"
+              @replace-text="replaceText"
+            />
+          </div>
           <NextButton
             v-if="showQuotedReplyToggle"
             v-tooltip.top-start="quotedReplyToggleTooltip"
