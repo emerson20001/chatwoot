@@ -522,7 +522,9 @@ div[class*='absolute'] {
     content: '';
     @apply absolute -left-3 bottom-3 w-0 h-0;
     border: 8px solid transparent;
-    border-right-color: #ef4444;
+    border-right-color: white;
   }
+
+  @apply dark:before:border-r-n-solid-2;
 }
 </style>
