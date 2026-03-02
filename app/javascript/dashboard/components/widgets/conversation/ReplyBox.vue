@@ -1215,6 +1215,8 @@ export default {
       :toggle-audio-recorder="toggleAudioRecorder"
       :toggle-emoji-picker="toggleEmojiPicker"
       :message="message"
+      :is-signature-available="isSignatureAvailable"
+      :is-signature-enabled-for-inbox="isSignatureEnabledForInbox"
       :portal-slug="connectedPortalSlug"
       :new-conversation-modal-active="newConversationModalActive"
       @select-whatsapp-template="openWhatsappTemplateModal"

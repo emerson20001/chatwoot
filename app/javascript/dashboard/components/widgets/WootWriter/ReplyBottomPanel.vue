@@ -1,5 +1,6 @@
 <script>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
 import FileUpload from 'vue-upload-component';
@@ -122,6 +123,14 @@ export default {
       type: Boolean,
       default: false,
     },
+    isSignatureAvailable: {
+      type: Boolean,
+      default: true,
+    },
+    isSignatureEnabledForInbox: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: [
     'replaceText',
@@ -131,6 +140,7 @@ export default {
     'toggleQuotedReply',
   ],
   setup() {
+    const router = useRouter();
     const { setSignatureFlagForInbox, fetchSignatureFlagFromUISettings } =
       useUISettings();
 
@@ -156,6 +166,7 @@ export default {
     useKeyboardEvents(keyboardEvents);
 
     return {
+      router,
       setSignatureFlagForInbox,
       fetchSignatureFlagFromUISettings,
       uploadRef,
@@ -245,6 +256,9 @@ export default {
       return this.fetchSignatureFlagFromUISettings(this.channelType);
     },
     signatureToggleTooltip() {
+      if (this.isSignatureEnabledForInbox && !this.isSignatureAvailable) {
+        return this.$t('CONVERSATION.FOOTER.MESSAGE_SIGNATURE_NOT_CONFIGURED');
+      }
       return this.sendWithSignature
         ? this.$t('CONVERSATION.FOOTER.DISABLE_SIGN_TOOLTIP')
         : this.$t('CONVERSATION.FOOTER.ENABLE_SIGN_TOOLTIP');
@@ -265,6 +279,13 @@ export default {
     ActiveStorage.start();
   },
   methods: {
+    handleSignatureButtonClick() {
+      if (this.isSignatureEnabledForInbox && !this.isSignatureAvailable) {
+        // Show popover tooltip instead of toggling
+        return;
+      }
+      this.toggleMessageSignature();
+    },
     toggleMessageSignature() {
       this.setSignatureFlagForInbox(this.channelType, !this.sendWithSignature);
     },
@@ -328,16 +349,32 @@ export default {
               class="w-full justify-start px-3"
             />
           </FileUpload>
-          <NextButton
-            v-if="showMessageSignatureButton"
-            v-tooltip.top-start="signatureToggleTooltip"
-            icon="i-ph-signature"
-            slate
-            ghost
-            sm
-            class="w-full justify-start px-3"
-            @click="toggleMessageSignature(); showActionMenu = false"
-          />
+          <div class="relative">
+            <NextButton
+              v-if="showMessageSignatureButton"
+              v-tooltip.top-start="signatureToggleTooltip"
+              icon="i-ph-signature"
+              slate
+              ghost
+              sm
+              class="w-full justify-start px-3"
+              @click="handleSignatureButtonClick(); showActionMenu = false"
+            />
+            <div
+              v-if="isSignatureEnabledForInbox && !isSignatureAvailable"
+              class="absolute bottom-full left-0 mb-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 p-3 w-64"
+            >
+              <p class="text-sm mb-2">
+                {{ $t('CONVERSATION.FOOTER.MESSAGE_SIGNATURE_NOT_CONFIGURED') }}
+              </p>
+              <NextButton
+                link
+                sm
+                :label="$t('CONVERSATION.FOOTER.CLICK_HERE')"
+                @click="() => $router.push({ name: 'profile_settings_index' })"
+              />
+            </div>
+          </div>
           <NextButton
             v-if="!isFetchingAppIntegrations"
             v-tooltip.top-start="$t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST')"
