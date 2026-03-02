@@ -16,7 +16,7 @@ export default {
       default: undefined,
     },
   },
-  emits: ['onSend', 'cancel', 'update:show'],
+  emits: ['onSend', 'cancel', 'close', 'update:show'],
   data() {
     return {
       selectedWaTemplate: null,
@@ -50,6 +50,7 @@ export default {
       this.$emit('onSend', message);
     },
     onClose() {
+      this.$emit('close');
       this.$emit('cancel');
     },
   },

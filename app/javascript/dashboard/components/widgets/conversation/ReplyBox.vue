@@ -1228,7 +1228,6 @@ export default {
       :show="showWhatsAppTemplatesModal"
       @close="hideWhatsappTemplatesModal"
       @on-send="onSendWhatsAppReply"
-      @cancel="hideWhatsappTemplatesModal"
     />
 
     <ContentTemplates
@@ -1236,7 +1235,6 @@ export default {
       :show="showContentTemplatesModal"
       @close="hideContentTemplatesModal"
       @on-send="onSendContentTemplateReply"
-      @cancel="hideContentTemplatesModal"
     />
 
     <woot-confirm-modal

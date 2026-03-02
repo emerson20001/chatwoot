@@ -16,7 +16,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['onSend', 'cancel', 'update:show']);
+const emit = defineEmits(['onSend', 'cancel', 'close', 'update:show']);
 
 const { t } = useI18n();
 
@@ -52,6 +52,7 @@ const onSendMessage = message => {
 };
 
 const onClose = () => {
+  emit('close');
   emit('cancel');
 };
 </script>
