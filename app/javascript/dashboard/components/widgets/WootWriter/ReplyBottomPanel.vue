@@ -524,6 +524,7 @@ div[class*='absolute'] {
     left: -17px;
     border: 8px solid transparent;
     border-right-color: white;
+    border-left-color: rgb(var(--border-weak) / var(--tw-border-opacity));
   }
 
   @apply dark:before:border-r-n-solid-2;
