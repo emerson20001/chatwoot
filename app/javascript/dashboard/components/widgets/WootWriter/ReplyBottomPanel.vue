@@ -3,7 +3,6 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
-import { useAI } from 'dashboard/composables/useAI';
 import FileUpload from 'vue-upload-component';
 import * as ActiveStorage from 'activestorage';
 import inboxMixin from 'shared/mixins/inboxMixin';
@@ -144,12 +143,10 @@ export default {
     const router = useRouter();
     const { setSignatureFlagForInbox, fetchSignatureFlagFromUISettings } =
       useUISettings();
-    const { isAIIntegrationEnabled } = useAI();
 
     const uploadRef = ref(false);
     const showActionMenu = ref(false);
     const showSignaturePopover = ref(false);
-    const showAIPopover = ref(false);
 
     const keyboardEvents = {
       '$mod+Alt+KeyA': {
@@ -176,8 +173,6 @@ export default {
       uploadRef,
       showActionMenu,
       showSignaturePopover,
-      showAIPopover,
-      isAIIntegrationEnabled,
     };
   },
   data() {
@@ -293,14 +288,7 @@ export default {
     showSignaturePopover(newVal) {
       if (newVal) {
         document.documentElement.style.overflow = 'hidden';
-      } else if (!this.showActionMenu && !this.showAIPopover) {
-        document.documentElement.style.overflow = '';
-      }
-    },
-    showAIPopover(newVal) {
-      if (newVal) {
-        document.documentElement.style.overflow = 'hidden';
-      } else if (!this.showActionMenu && !this.showSignaturePopover) {
+      } else if (!this.showActionMenu) {
         document.documentElement.style.overflow = '';
       }
     },
@@ -325,13 +313,6 @@ export default {
     },
     toggleInsertArticle() {
       this.$emit('toggleInsertArticle');
-    },
-    handleAIButtonClick() {
-      if (!this.isAIIntegrationEnabled) {
-        this.showAIPopover = !this.showAIPopover;
-        return;
-      }
-      // Open AI assistance if enabled
     },
   },
 };
@@ -418,37 +399,15 @@ export default {
               />
             </div>
           </div>
-          <div class="relative">
-            <NextButton
-              v-if="!isFetchingAppIntegrations"
-              v-tooltip.top-start="$t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST')"
-              icon="i-ph-magic-wand"
-              slate
-              ghost
-              sm
-              class="w-full justify-start px-3"
-              @click="handleAIButtonClick()"
-            />
-            <div
-              v-if="showAIPopover && !isAIIntegrationEnabled"
-              class="ai-popover absolute left-full top-0 -translate-y-1/2 ml-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 p-3 w-64"
-              style="top: -100px;"
-              @click.stop
-            >
-              <p class="text-sm mb-2">
-                {{ $t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST_NOT_CONFIGURED') }}
-              </p>
-              <NextButton
-                link
-                sm
-                :label="$t('CONVERSATION.FOOTER.CLICK_HERE')"
-                @click="() => {
-                  $router.push({ name: 'general_settings_index' });
-                  showAIPopover = false;
-                }"
-              />
-            </div>
-          </div>
+          <NextButton
+            v-if="!isFetchingAppIntegrations"
+            v-tooltip.top-start="$t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST')"
+            icon="i-ph-magic-wand"
+            slate
+            ghost
+            sm
+            class="w-full justify-start px-3"
+          />
           <NextButton
             v-if="showQuotedReplyToggle"
             v-tooltip.top-start="quotedReplyToggleTooltip"
@@ -500,9 +459,9 @@ export default {
     </div>
     <transition name="fade">
       <div
-        v-if="showActionMenu || showSignaturePopover || showAIPopover"
+        v-if="showActionMenu || showSignaturePopover"
         class="fixed inset-0 z-40"
-        @click="showActionMenu = false; showSignaturePopover = false; showAIPopover = false"
+        @click="showActionMenu = false; showSignaturePopover = false"
       />
     </transition>
     <transition name="modal-fade">
@@ -574,8 +533,7 @@ div[class*='absolute'] {
   }
 }
 
-.signature-popover,
-.ai-popover {
+.signature-popover {
   &::before {
     content: '';
     @apply absolute bottom-3 w-0 h-0;
