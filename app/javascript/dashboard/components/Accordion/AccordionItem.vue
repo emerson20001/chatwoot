@@ -62,3 +62,9 @@ const onToggle = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+button.drag-handle {
+  touch-action: manipulation;
+}
+</style>

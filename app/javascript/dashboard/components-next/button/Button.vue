@@ -259,3 +259,9 @@ const animationClasses = computed(() => {
     </slot>
   </button>
 </template>
+
+<style scoped>
+button {
+  touch-action: manipulation;
+}
+</style>
