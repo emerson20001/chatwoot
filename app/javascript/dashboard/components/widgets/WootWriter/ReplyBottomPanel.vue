@@ -146,6 +146,7 @@ export default {
 
     const uploadRef = ref(false);
     const showActionMenu = ref(false);
+    const showSignaturePopover = ref(false);
 
     const keyboardEvents = {
       '$mod+Alt+KeyA': {
@@ -171,6 +172,7 @@ export default {
       fetchSignatureFlagFromUISettings,
       uploadRef,
       showActionMenu,
+      showSignaturePopover,
     };
   },
   data() {
@@ -281,10 +283,11 @@ export default {
   methods: {
     handleSignatureButtonClick() {
       if (this.isSignatureEnabledForInbox && !this.isSignatureAvailable) {
-        // Show popover tooltip instead of toggling
+        this.showSignaturePopover = !this.showSignaturePopover;
         return;
       }
       this.toggleMessageSignature();
+      this.showSignaturePopover = false;
     },
     toggleMessageSignature() {
       this.setSignatureFlagForInbox(this.channelType, !this.sendWithSignature);
@@ -361,8 +364,9 @@ export default {
               @click="handleSignatureButtonClick(); showActionMenu = false"
             />
             <div
-              v-if="isSignatureEnabledForInbox && !isSignatureAvailable"
+              v-if="showSignaturePopover && isSignatureEnabledForInbox && !isSignatureAvailable"
               class="absolute bottom-full left-0 mb-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 p-3 w-64"
+              @click.stop
             >
               <p class="text-sm mb-2">
                 {{ $t('CONVERSATION.FOOTER.MESSAGE_SIGNATURE_NOT_CONFIGURED') }}
@@ -371,10 +375,18 @@ export default {
                 link
                 sm
                 :label="$t('CONVERSATION.FOOTER.CLICK_HERE')"
-                @click="() => $router.push({ name: 'profile_settings_index' })"
+                @click="() => {
+                  $router.push({ name: 'profile_settings_index' });
+                  showSignaturePopover = false;
+                }"
               />
             </div>
           </div>
+          <div
+            v-if="showSignaturePopover"
+            class="fixed inset-0 z-40"
+            @click="showSignaturePopover = false"
+          />
           <NextButton
             v-if="!isFetchingAppIntegrations"
             v-tooltip.top-start="$t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST')"

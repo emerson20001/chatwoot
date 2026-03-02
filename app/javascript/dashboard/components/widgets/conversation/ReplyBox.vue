@@ -1187,9 +1187,6 @@ export default {
         @remove-attachment="removeAttachment"
       />
     </div>
-    <MessageSignatureMissingAlert
-      v-if="isSignatureEnabledForInbox && !isSignatureAvailable"
-    />
     <ReplyBottomPanel
       :conversation-id="conversationId"
       :enable-multiple-file-upload="enableMultipleFileUpload"
