@@ -361,7 +361,7 @@ export default {
               ghost
               sm
               class="w-full justify-start px-3"
-              @click="handleSignatureButtonClick(); showActionMenu = false"
+              @click="handleSignatureButtonClick()"
             />
             <div
               v-if="showSignaturePopover && isSignatureEnabledForInbox && !isSignatureAvailable"
@@ -382,11 +382,6 @@ export default {
               />
             </div>
           </div>
-          <div
-            v-if="showSignaturePopover"
-            class="fixed inset-0 z-40"
-            @click="showSignaturePopover = false"
-          />
           <NextButton
             v-if="!isFetchingAppIntegrations"
             v-tooltip.top-start="$t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST')"
@@ -445,6 +440,13 @@ export default {
         </div>
       </transition>
     </div>
+    <transition name="fade">
+      <div
+        v-if="showActionMenu || showSignaturePopover"
+        class="fixed inset-0 z-40"
+        @click="showActionMenu = false; showSignaturePopover = false"
+      />
+    </transition>
     <transition name="modal-fade">
       <div
         v-show="uploadRef && uploadRef.dropActive"
