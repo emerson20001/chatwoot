@@ -251,7 +251,7 @@ export default {
       }
     },
     showMessageSignatureButton() {
-      return !this.isOnPrivateNote;
+      return !this.isOnPrivateNote && this.channelType === INBOX_TYPES.EMAIL;
     },
     sendWithSignature() {
       // channelType is sourced from inboxMixin
