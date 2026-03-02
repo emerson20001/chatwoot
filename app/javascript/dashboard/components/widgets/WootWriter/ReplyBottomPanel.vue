@@ -338,6 +338,13 @@ export default {
             class="w-full justify-start px-3"
             @click="toggleMessageSignature(); showActionMenu = false"
           />
+          <AIAssistanceButton
+            v-if="!isFetchingAppIntegrations"
+            :conversation-id="conversationId"
+            :is-private-note="isOnPrivateNote"
+            :message="message"
+            @replace-text="replaceText"
+          />
           <NextButton
             v-if="showQuotedReplyToggle"
             v-tooltip.top-start="quotedReplyToggleTooltip"
