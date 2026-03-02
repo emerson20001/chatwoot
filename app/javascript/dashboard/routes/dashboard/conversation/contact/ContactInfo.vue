@@ -334,7 +334,7 @@ export default {
     <woot-delete-modal
       v-if="showDeleteModal"
       v-model:show="showDeleteModal"
-      :on-close="closeDelete"
+      @close="closeDelete"
       :on-confirm="confirmDeletion"
       :title="$t('DELETE_CONTACT.CONFIRM.TITLE')"
       :message="$t('DELETE_CONTACT.CONFIRM.MESSAGE')"

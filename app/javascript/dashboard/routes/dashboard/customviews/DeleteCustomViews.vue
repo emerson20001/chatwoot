@@ -102,7 +102,7 @@ export default {
     <woot-delete-modal
       v-if="localShow"
       v-model:show="localShow"
-      :on-close="closeDeletePopup"
+      @close="closeDeletePopup"
       :on-confirm="deleteSavedCustomViews"
       :title="$t('FILTER.CUSTOM_VIEWS.DELETE.MODAL.CONFIRM.TITLE')"
       :message="$t('FILTER.CUSTOM_VIEWS.DELETE.MODAL.CONFIRM.MESSAGE')"

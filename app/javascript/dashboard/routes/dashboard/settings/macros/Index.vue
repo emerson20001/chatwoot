@@ -104,7 +104,7 @@ const tableHeaders = computed(() => {
       </table>
       <woot-delete-modal
         v-model:show="showDeleteConfirmationPopup"
-        :on-close="closeDeletePopup"
+        @close="closeDeletePopup"
         :on-confirm="confirmDeletion"
         :title="$t('LABEL_MGMT.DELETE.CONFIRM.TITLE')"
         :message="$t('MACROS.DELETE.CONFIRM.MESSAGE')"

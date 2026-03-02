@@ -148,13 +148,13 @@ export default {
         />
       </div>
 
-      <woot-modal v-model:show="showAddPopup" :on-close="hideAddPopup">
+      <woot-modal v-model:show="showAddPopup" @close="hideAddPopup">
         <AddSLA @close="hideAddPopup" />
       </woot-modal>
 
       <woot-delete-modal
         v-model:show="showDeleteConfirmationPopup"
-        :on-close="closeDeletePopup"
+        @close="closeDeletePopup"
         :on-confirm="confirmDeletion"
         :title="$t('SLA.DELETE.CONFIRM.TITLE')"
         :message="$t('SLA.DELETE.CONFIRM.MESSAGE')"

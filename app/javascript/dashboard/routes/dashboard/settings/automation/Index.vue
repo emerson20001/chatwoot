@@ -224,18 +224,18 @@ const tableHeaders = computed(() => {
     <woot-modal
       v-model:show="showAddPopup"
       size="medium"
-      :on-close="hideAddPopup"
+      @close="hideAddPopup"
     >
       <AddAutomationRule
         v-if="showAddPopup"
-        :on-close="hideAddPopup"
+        @close="hideAddPopup"
         @save-automation="submitAutomation"
       />
     </woot-modal>
 
     <woot-delete-modal
       v-model:show="showDeleteConfirmationPopup"
-      :on-close="closeDeletePopup"
+      @close="closeDeletePopup"
       :on-confirm="confirmDeletion"
       :title="$t('LABEL_MGMT.DELETE.CONFIRM.TITLE')"
       :message="$t('AUTOMATION.DELETE.CONFIRM.MESSAGE')"
@@ -247,11 +247,11 @@ const tableHeaders = computed(() => {
     <woot-modal
       v-model:show="showEditPopup"
       size="medium"
-      :on-close="hideEditPopup"
+      @close="hideEditPopup"
     >
       <EditAutomationRule
         v-if="showEditPopup"
-        :on-close="hideEditPopup"
+        @close="hideEditPopup"
         :selected-response="selectedAutomation"
         @save-automation="submitAutomation"
       />

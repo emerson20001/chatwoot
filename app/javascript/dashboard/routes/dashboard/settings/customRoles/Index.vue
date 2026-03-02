@@ -171,7 +171,7 @@ const confirmDeletion = () => {
 
     <woot-modal
       v-model:show="showCustomRoleModal"
-      :on-close="hideCustomRoleModal"
+      @close="hideCustomRoleModal"
     >
       <CustomRoleModal
         :mode="customRoleModalMode"
@@ -182,7 +182,7 @@ const confirmDeletion = () => {
 
     <woot-delete-modal
       v-model:show="showDeleteConfirmationPopup"
-      :on-close="closeDeletePopup"
+      @close="closeDeletePopup"
       :on-confirm="confirmDeletion"
       :title="$t('CUSTOM_ROLE.DELETE.CONFIRM.TITLE')"
       :message="$t('CUSTOM_ROLE.DELETE.CONFIRM.MESSAGE')"
