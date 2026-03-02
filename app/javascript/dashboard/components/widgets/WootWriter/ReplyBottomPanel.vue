@@ -520,7 +520,8 @@ div[class*='absolute'] {
 .signature-popover {
   &::before {
     content: '';
-    @apply absolute -left-3 bottom-3 w-0 h-0;
+    @apply absolute bottom-3 w-0 h-0;
+    left: -17px;
     border: 8px solid transparent;
     border-right-color: white;
   }
