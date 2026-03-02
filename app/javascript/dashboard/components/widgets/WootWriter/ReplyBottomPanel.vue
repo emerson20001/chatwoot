@@ -511,8 +511,10 @@ export default {
 
 <style lang="scss" scoped>
 :deep(.file-uploads ){
+  @apply w-full;
+
   label {
-    @apply cursor-pointer;
+    @apply cursor-pointer w-full;
   }
 
   &:hover button {
