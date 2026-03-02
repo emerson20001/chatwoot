@@ -340,7 +340,7 @@ export default {
             slate
             ghost
             sm
-            class="w-full justify-start px-3"
+            class="w-full justify-center px-3"
             @click="toggleEmojiPicker(); showActionMenu = false"
           />
           <FileUpload
@@ -365,7 +365,7 @@ export default {
               slate
               ghost
               sm
-              class="w-full justify-start px-3"
+              class="w-full justify-center px-3"
             />
           </FileUpload>
           <div class="relative">
@@ -376,7 +376,7 @@ export default {
               slate
               ghost
               sm
-              class="w-full justify-start px-3"
+              class="w-full justify-center px-3"
               @click="handleSignatureButtonClick()"
             />
             <div
@@ -401,7 +401,7 @@ export default {
           </div>
           <div
             v-if="!isFetchingAppIntegrations"
-            class="w-full justify-start px-3"
+            class="w-full justify-center px-3"
           >
             <AIAssistanceButton
               :conversation-id="conversationId"
@@ -418,7 +418,7 @@ export default {
             :variant="quotedReplyEnabled ? 'solid' : 'ghost'"
             color="slate"
             sm
-            class="w-full justify-start px-3"
+            class="w-full justify-center px-3"
             :aria-pressed="quotedReplyEnabled"
             @click="$emit('toggleQuotedReply'); showActionMenu = false"
           />
@@ -429,7 +429,7 @@ export default {
             slate
             ghost
             sm
-            class="w-full justify-start px-3"
+            class="w-full justify-center px-3"
             @click="$emit('selectWhatsappTemplate'); showActionMenu = false"
           />
           <NextButton
@@ -439,13 +439,13 @@ export default {
             slate
             ghost
             sm
-            class="w-full justify-start px-3"
+            class="w-full justify-center px-3"
             @click="$emit('selectContentTemplate'); showActionMenu = false"
           />
           <VideoCallButton
             v-if="(isAWebWidgetInbox || isAPIInbox) && !isOnPrivateNote"
             :conversation-id="conversationId"
-            class="w-full justify-start px-3"
+            class="w-full justify-center px-3"
           />
           <NextButton
             v-if="enableInsertArticleInReply"
@@ -454,7 +454,7 @@ export default {
             slate
             ghost
             sm
-            class="w-full justify-start px-3"
+            class="w-full justify-center px-3"
             @click="toggleInsertArticle(); showActionMenu = false"
           />
         </div>
