@@ -347,26 +347,6 @@ export default {
             @replace-text="replaceText"
           />
           <NextButton
-            v-if="showAudioRecorderButton"
-            v-tooltip.top-start="$t('CONVERSATION.REPLYBOX.TIP_AUDIORECORDER_ICON')"
-            :icon="!isRecordingAudio ? 'i-ph-microphone' : 'i-ph-microphone-slash'"
-            slate
-            ghost
-            sm
-            class="w-full justify-start px-3"
-            @click="toggleAudioRecorder(); showActionMenu = false"
-          />
-          <NextButton
-            v-if="showAudioPlayStopButton"
-            :icon="audioRecorderPlayStopIcon"
-            slate
-            ghost
-            sm
-            :label="recordingAudioDurationText"
-            class="w-full justify-start px-3"
-            @click="toggleAudioRecorderPlayPause"
-          />
-          <NextButton
             v-if="showQuotedReplyToggle"
             v-tooltip.top-start="quotedReplyToggleTooltip"
             icon="i-ph-quotes"
@@ -427,6 +407,24 @@ export default {
       </div>
     </transition>
     <div class="flex-1" />
+    <NextButton
+      v-if="showAudioRecorderButton"
+      v-tooltip.top-end="$t('CONVERSATION.REPLYBOX.TIP_AUDIORECORDER_ICON')"
+      :icon="!isRecordingAudio ? 'i-ph-microphone' : 'i-ph-microphone-slash'"
+      slate
+      faded
+      sm
+      @click="toggleAudioRecorder"
+    />
+    <NextButton
+      v-if="showAudioPlayStopButton"
+      :icon="audioRecorderPlayStopIcon"
+      slate
+      faded
+      sm
+      :label="recordingAudioDurationText"
+      @click="toggleAudioRecorderPlayPause"
+    />
     <NextButton
       :label="sendButtonText"
       type="submit"
