@@ -519,7 +519,7 @@ div[class*='absolute'] {
 .signature-popover {
   &::before {
     content: '';
-    @apply absolute -left-2 top-1/2 -translate-y-1/2 w-0 h-0 border-8 border-transparent;
+    @apply absolute -left-2 bottom-2 w-0 h-0 border-8 border-transparent;
     border-right-color: inherit;
   }
 
