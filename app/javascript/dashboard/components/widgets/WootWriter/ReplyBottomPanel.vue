@@ -365,7 +365,7 @@ export default {
             />
             <div
               v-if="showSignaturePopover && isSignatureEnabledForInbox && !isSignatureAvailable"
-              class="signature-popover absolute left-full top-1/2 -translate-y-1/2 ml-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 p-3 w-64"
+              class="signature-popover absolute left-full top-1/3 -translate-y-1/2 ml-2 bg-white dark:bg-n-solid-2 border border-n-weak rounded-lg shadow-lg z-50 p-3 w-64"
               @click.stop
             >
               <p class="text-sm mb-2">
@@ -519,10 +519,9 @@ div[class*='absolute'] {
 .signature-popover {
   &::before {
     content: '';
-    @apply absolute -left-2 bottom-2 w-0 h-0 border-8 border-transparent;
-    border-right-color: inherit;
+    @apply absolute -left-3 bottom-3 w-0 h-0;
+    border: 8px solid transparent;
+    border-right-color: #ef4444;
   }
-
-  @apply dark:before:border-r-n-solid-2 before:border-r-white;
 }
 </style>
