@@ -1,5 +1,6 @@
 <script setup>
 import { computed, watch, onMounted, ref } from 'vue';
+import { useWindowSize } from '@vueuse/core';
 import {
   useMapGetter,
   useFunctionGetter,
@@ -23,6 +24,7 @@ import ShopifyOrdersList from 'dashboard/components/widgets/conversation/Shopify
 import SidebarActionsHeader from 'dashboard/components-next/SidebarActionsHeader.vue';
 import LinearIssuesList from 'dashboard/components/widgets/conversation/linear/IssuesList.vue';
 import LinearSetupCTA from 'dashboard/components/widgets/conversation/linear/LinearSetupCTA.vue';
+import wootConstants from 'dashboard/constants/globals';
 
 const props = defineProps({
   conversationId: {
@@ -44,6 +46,11 @@ const {
 
 const dragging = ref(false);
 const conversationSidebarItems = ref([]);
+const { width: windowWidth } = useWindowSize();
+
+const isSmallScreen = computed(
+  () => windowWidth.value < wootConstants.SMALL_SCREEN_BREAKPOINT
+);
 
 const shopifyIntegration = useFunctionGetter(
   'integrations/getIntegration',
@@ -140,6 +147,7 @@ onMounted(() => {
     <div class="px-2 pb-8 list-group">
       <Draggable
         :list="conversationSidebarItems"
+        :disabled="isSmallScreen"
         animation="200"
         ghost-class="ghost"
         handle=".drag-handle"
