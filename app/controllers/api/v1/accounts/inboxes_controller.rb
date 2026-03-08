@@ -28,6 +28,7 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
   end
 
   def create
+    channel = nil
     ActiveRecord::Base.transaction do
       channel = create_channel
       @inbox = Current.account.inboxes.build(
@@ -40,6 +41,10 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
       )
       @inbox.save!
     end
+    create_evolution_whatsapp_resources! if evolution_whatsapp_channel?(channel)
+  rescue Inboxes::EvolutionWhatsappProvisionService::Error => e
+    @inbox&.destroy! if @inbox&.persisted?
+    render json: { message: e.message }, status: :unprocessable_entity
   end
 
   def update
@@ -211,6 +216,16 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
     elsif @inbox.twilio? && @inbox.channel.whatsapp?
       Channels::Twilio::TemplatesSyncJob.perform_later(@inbox.channel)
     end
+  end
+
+  def evolution_whatsapp_channel?(channel)
+    return false unless channel.is_a?(Channel::Api)
+
+    channel.additional_attributes&.with_indifferent_access&.[](:provider) == 'whatsapp_evo'
+  end
+
+  def create_evolution_whatsapp_resources!
+    Inboxes::EvolutionWhatsappProvisionService.new(inbox: @inbox).call
   end
 end
 

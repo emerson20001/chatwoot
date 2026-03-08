@@ -23,6 +23,8 @@ class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::
       message.update!(content: I18n.t('conversations.messages.deleted'), content_type: :text, content_attributes: { deleted: true })
       message.attachments.destroy_all
     end
+
+    notify_evolution_message_deleted
   end
 
   def retry
@@ -70,6 +72,12 @@ class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::
 
   def already_translated_content_available?
     message.translations.present? && message.translations[permitted_params[:target_language]].present?
+  end
+
+  def notify_evolution_message_deleted
+    Inboxes::EvolutionWhatsappMessageDeleteService.new(message: message).call
+  rescue StandardError => e
+    Rails.logger.warn("[EvolutionMessageDelete] Failed to notify Evolution API for message #{message.id}: #{e.message}")
   end
 
   # API inbox check

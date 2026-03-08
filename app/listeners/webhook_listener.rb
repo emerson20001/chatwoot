@@ -118,12 +118,82 @@ class WebhookListener < BaseListener
   def deliver_api_inbox_webhooks(payload, inbox)
     return unless inbox.channel_type == 'Channel::Api'
     return if inbox.channel.webhook_url.blank?
+    if evolution_whatsapp_inbox?(inbox) && (payload[:event] || payload['event']).to_s == 'message_updated'
+      return
+    end
 
-    WebhookJob.perform_later(inbox.channel.webhook_url, payload, :api_inbox_webhook)
+    transformed_payload = transform_payload_for_api_inbox(payload, inbox)
+    WebhookJob.perform_later(inbox.channel.webhook_url, transformed_payload, :api_inbox_webhook)
   end
 
   def deliver_webhook_payloads(payload, inbox)
     deliver_account_webhooks(payload, inbox.account)
     deliver_api_inbox_webhooks(payload, inbox)
+  end
+
+  def transform_payload_for_api_inbox(payload, inbox)
+    return payload unless evolution_whatsapp_inbox?(inbox)
+    event_name = (payload[:event] || payload['event']).to_s
+    return payload unless event_name == 'message_created'
+
+    base_url = env_for('EVOLUTION_CHATWOOT_URL', ENV.fetch('FRONTEND_URL', '')).to_s
+    return payload if base_url.blank?
+
+    rewrite_attachments_array!(payload[:attachments] || payload['attachments'], base_url)
+
+    conversation = payload[:conversation] || payload['conversation']
+    messages = conversation.is_a?(Hash) ? (conversation[:messages] || conversation['messages']) : nil
+    if messages.is_a?(Array)
+      messages.each do |message|
+        next unless message.is_a?(Hash)
+
+        rewrite_attachments_array!(message[:attachments] || message['attachments'], base_url)
+      end
+    end
+
+    payload
+  end
+
+  def rewrite_attachments_array!(attachments, base_url)
+    return unless attachments.is_a?(Array)
+
+    attachments.each do |attachment|
+      next unless attachment.is_a?(Hash)
+
+      attachment[:data_url] = rewrite_localhost_url(attachment[:data_url], base_url) if attachment[:data_url].present?
+      attachment['data_url'] = rewrite_localhost_url(attachment['data_url'], base_url) if attachment['data_url'].present?
+      attachment[:thumb_url] = rewrite_localhost_url(attachment[:thumb_url], base_url) if attachment[:thumb_url].present?
+      attachment['thumb_url'] = rewrite_localhost_url(attachment['thumb_url'], base_url) if attachment['thumb_url'].present?
+
+      # Evolution compatibility: some flows expect mediaUrl/base64 keys.
+      normalized_media_url = attachment[:data_url] || attachment['data_url']
+      attachment[:mediaUrl] = normalized_media_url if normalized_media_url.present?
+      attachment['mediaUrl'] = normalized_media_url if normalized_media_url.present?
+    end
+  end
+
+  def evolution_whatsapp_inbox?(inbox)
+    return false unless inbox.channel_type == 'Channel::Api'
+
+    inbox.channel.additional_attributes&.with_indifferent_access&.[](:provider) == 'whatsapp_evo'
+  end
+
+  def rewrite_localhost_url(url, base_url)
+    uri = URI.parse(url)
+    return url unless %w[http https].include?(uri.scheme)
+    return url unless %w[localhost 127.0.0.1 0.0.0.0].include?(uri.host)
+
+    target = URI.parse(base_url)
+    uri.scheme = target.scheme
+    uri.host = target.host
+    uri.port = target.port
+    uri.to_s
+  rescue URI::InvalidURIError
+    url
+  end
+
+  def env_for(base_key, fallback = '')
+    env_key = "#{base_key}_#{Rails.env.upcase}"
+    ENV.fetch(env_key, ENV.fetch(base_key, fallback))
   end
 end

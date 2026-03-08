@@ -1,0 +1,25 @@
+services:
+  base:
+    env_file:
+      - .env
+      - .env.development
+
+  rails:
+    env_file:
+      - .env
+      - .env.development
+
+  sidekiq:
+    env_file:
+      - .env
+      - .env.development
+
+  vite:
+    env_file:
+      - .env
+      - .env.development
+
+  redis:
+    env_file:
+      - .env
+      - .env.development
