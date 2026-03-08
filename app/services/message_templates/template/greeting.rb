@@ -2,7 +2,10 @@ class MessageTemplates::Template::Greeting
   pattr_initialize [:conversation!]
 
   def perform
-    ActiveRecord::Base.transaction do
+    conversation.with_lock do
+      return if greeting_already_sent?
+      return unless greeting_eligible?
+
       conversation.messages.create!(greeting_message_params)
     end
   rescue StandardError => e
@@ -24,5 +27,15 @@ class MessageTemplates::Template::Greeting
       message_type: :template,
       content: content
     }
+  end
+
+  def greeting_already_sent?
+    conversation.messages.template.exists?
+  end
+
+  def greeting_eligible?
+    conversation.messages.outgoing.count.zero? &&
+      @conversation.inbox&.greeting_enabled? &&
+      @conversation.inbox&.greeting_message.present?
   end
 end
