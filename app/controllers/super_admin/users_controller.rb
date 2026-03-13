@@ -1,4 +1,6 @@
 class SuperAdmin::UsersController < SuperAdmin::ApplicationController
+  rescue_from ActiveRecord::RecordNotFound, with: :handle_user_not_found
+
   # Overwrite any of the RESTful controller actions to implement custom behavior
   # For example, you may want to send an email after a foo is updated.
 
@@ -66,5 +68,11 @@ class SuperAdmin::UsersController < SuperAdmin::ApplicationController
   # for more information
   def find_resource(param)
     super.becomes(User)
+  end
+
+  private
+
+  def handle_user_not_found
+    redirect_to super_admin_users_path, alert: 'User not found'
   end
 end

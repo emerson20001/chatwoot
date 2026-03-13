@@ -4,11 +4,15 @@ import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAccount } from 'dashboard/composables/useAccount';
+import { useMapGetter } from 'dashboard/composables/store';
 
 const router = useRouter();
 const route = useRoute();
 const { t } = useI18n();
 const { currentAccount, accountScopedRoute } = useAccount();
+const currentUserRole = useMapGetter('getCurrentRole');
+const currentUser = useMapGetter('getCurrentUser');
+const isSuperAdmin = computed(() => currentUser.value?.type === 'SuperAdmin');
 const iframeRef = ref(null);
 const N8N_READY_COMMAND = 'n8nSigninReadyForInviteeAutoLogin';
 const N8N_AUTO_LOGIN_COMMAND = 'n8nAutoLoginByInviteeId';
@@ -20,11 +24,43 @@ const hasSentN8nAutoLogin = ref(false);
 const n8nInitialLoadingUntil = ref(0);
 let iframeRevealTimeout = null;
 
+const normalizedCustomMenus = computed(() => {
+  const rawCustomMenus = currentAccount.value?.settings?.custom_menus;
+
+  if (Array.isArray(rawCustomMenus)) {
+    return rawCustomMenus;
+  }
+
+  if (rawCustomMenus && typeof rawCustomMenus === 'object') {
+    return Object.values(rawCustomMenus);
+  }
+
+  return [];
+});
+
 const customMenus = computed(
   () =>
-    currentAccount.value?.settings?.custom_menus?.filter(
-      menu => menu?.label?.trim() && menu?.link?.trim()
-    ) || []
+    normalizedCustomMenus.value.filter(
+      menu => {
+        if (!menu?.label?.trim() || !menu?.link?.trim()) {
+          return false;
+        }
+
+        if (isSuperAdmin.value) {
+          return true;
+        }
+
+        if (currentUserRole.value === 'administrator') {
+          return menu.visible_for_administrator !== false;
+        }
+
+        if (currentUserRole.value === 'agent') {
+          return menu.visible_for_agent !== false;
+        }
+
+        return false;
+      }
+    )
 );
 const menuIndex = computed(() => Number(route.params.menuIndex || 0));
 const selectedMenu = computed(() => customMenus.value[menuIndex.value]);
@@ -143,7 +179,17 @@ const iframePostMessageTarget = computed(() => {
   return normalizedMenuUrl.value?.origin || '*';
 });
 
-const isN8nIframe = computed(() => normalizedMenuUrl.value?.port === '5678');
+const isN8nIframe = computed(() => {
+  const url = normalizedMenuUrl.value;
+  if (!url) {
+    return false;
+  }
+
+  const normalizedUrl = url.toString().toLowerCase();
+
+  // Keep original localhost behavior and also support production/custom n8n URLs.
+  return url.port === '5678' || normalizedUrl.includes('n8n');
+});
 const n8nLogoSrc = computed(() =>
   isN8nIframe.value && normalizedMenuUrl.value
     ? `${normalizedMenuUrl.value.origin}/static/n8n-logo.png`
@@ -201,9 +247,6 @@ const sendN8nForceLogoutContext = () => {
 
   return true;
 };
-
-const shouldHideN8nIframeForUrl = parsedUrl =>
-  parsedUrl.pathname === '/signup' || parsedUrl.pathname === '/mfa';
 
 const persistIframeSessionUrl = rawUrl => {
   if (!iframeSessionKey.value || !rawUrl) {
@@ -263,6 +306,10 @@ const handleContextRequest = event => {
   }
 
   if (parsedData?.command === N8N_READY_COMMAND) {
+    if (hasSentN8nAutoLogin.value) {
+      return;
+    }
+
     const inviteeId = wordpressBlogContext.value.invitee_id;
     hasSentN8nAutoLogin.value = inviteeId
       ? sendN8nAutoLoginContext()
@@ -285,7 +332,8 @@ const handleContextRequest = event => {
         if (Date.now() < n8nInitialLoadingUntil.value) {
           isIframeVisible.value = false;
         } else {
-          isIframeVisible.value = !shouldHideN8nIframeForUrl(parsedUrl);
+          // After initial loading, keep auth pages visible (e.g. /signin after sign out).
+          isIframeVisible.value = true;
         }
 
         persistIframeSessionUrl(parsedUrl.toString());
@@ -336,11 +384,11 @@ watchEffect(() => {
   if (isN8nIframe.value) {
     // Start hidden for n8n and reveal when route changes away from auth pages.
     isIframeVisible.value = false;
-    n8nInitialLoadingUntil.value = Date.now() + 2000;
+    n8nInitialLoadingUntil.value = Date.now() + 3000;
     iframeRevealTimeout = window.setTimeout(() => {
       isIframeVisible.value = true;
       iframeRevealTimeout = null;
-    }, 2000);
+    }, 3000);
     return;
   }
 

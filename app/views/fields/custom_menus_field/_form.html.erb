@@ -11,20 +11,48 @@
     </div>
     <% container_id = "#{field.attribute}-rows-#{SecureRandom.hex(4)}" %>
     <div id="<%= container_id %>">
-      <% field.custom_menus.each do |menu| %>
-        <div data-custom-menu-row style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+      <% field.custom_menus.each_with_index do |menu, index| %>
+        <div data-custom-menu-row style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap;">
           <input
             type="text"
-            name="<%= "#{f.object_name}[#{field.attribute}][][label]" %>"
+            name="<%= "#{f.object_name}[#{field.attribute}][#{index}][label]" %>"
             value="<%= menu['label'] %>"
             placeholder="Menu name"
           />
           <input
             type="url"
-            name="<%= "#{f.object_name}[#{field.attribute}][][link]" %>"
+            name="<%= "#{f.object_name}[#{field.attribute}][#{index}][link]" %>"
             value="<%= menu['link'] %>"
             placeholder="https://example.com"
           />
+          <label style="display: flex; gap: 4px; align-items: center;">
+            <input
+              type="hidden"
+              name="<%= "#{f.object_name}[#{field.attribute}][#{index}][visible_for_administrator]" %>"
+              value="0"
+            />
+            <input
+              type="checkbox"
+              name="<%= "#{f.object_name}[#{field.attribute}][#{index}][visible_for_administrator]" %>"
+              value="1"
+              <%= 'checked' if menu['visible_for_administrator'] %>
+            />
+            Administrador
+          </label>
+          <label style="display: flex; gap: 4px; align-items: center;">
+            <input
+              type="hidden"
+              name="<%= "#{f.object_name}[#{field.attribute}][#{index}][visible_for_agent]" %>"
+              value="0"
+            />
+            <input
+              type="checkbox"
+              name="<%= "#{f.object_name}[#{field.attribute}][#{index}][visible_for_agent]" %>"
+              value="1"
+              <%= 'checked' if menu['visible_for_agent'] %>
+            />
+            Agent
+          </label>
           <button type="button" data-add-custom-menu>Add New</button>
           <button type="button" data-remove-custom-menu style="background: #dc2626; color: #ffffff;">Remove</button>
         </div>
@@ -38,16 +66,31 @@
     const container = document.getElementById('<%= container_id %>');
     if (!container || container.dataset.initialized === 'true') return;
 
+    const menuFieldsPrefix = '<%= "#{f.object_name}[#{field.attribute}]" %>';
+    let nextRowIndex = <%= field.custom_menus.length %>;
+
     const buildRow = () => {
+      const rowIndex = nextRowIndex++;
       const row = document.createElement('div');
       row.setAttribute('data-custom-menu-row', '');
       row.style.display = 'flex';
       row.style.gap = '8px';
       row.style.marginBottom = '8px';
       row.style.alignItems = 'center';
+      row.style.flexWrap = 'wrap';
       row.innerHTML = `
-        <input type="text" name="<%= "#{f.object_name}[#{field.attribute}][][label]" %>" placeholder="Menu name" />
-        <input type="url" name="<%= "#{f.object_name}[#{field.attribute}][][link]" %>" placeholder="https://example.com" />
+        <input type="text" name="${menuFieldsPrefix}[${rowIndex}][label]" placeholder="Menu name" />
+        <input type="url" name="${menuFieldsPrefix}[${rowIndex}][link]" placeholder="https://example.com" />
+        <label style="display: flex; gap: 4px; align-items: center;">
+          <input type="hidden" name="${menuFieldsPrefix}[${rowIndex}][visible_for_administrator]" value="0" />
+          <input type="checkbox" name="${menuFieldsPrefix}[${rowIndex}][visible_for_administrator]" value="1" checked />
+          Administrador
+        </label>
+        <label style="display: flex; gap: 4px; align-items: center;">
+          <input type="hidden" name="${menuFieldsPrefix}[${rowIndex}][visible_for_agent]" value="0" />
+          <input type="checkbox" name="${menuFieldsPrefix}[${rowIndex}][visible_for_agent]" value="1" checked />
+          Agent
+        </label>
         <button type="button" data-add-custom-menu>Add New</button>
         <button type="button" data-remove-custom-menu style="background: #dc2626; color: #ffffff;">Remove</button>
       `;

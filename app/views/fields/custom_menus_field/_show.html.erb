@@ -3,7 +3,13 @@
 <% end %>
 <% if field.custom_menus.any? %>
   <% field.custom_menus.each do |menu| %>
-    <div><strong><%= menu['label'] %></strong>: <%= menu['link'] %></div>
+    <% visible_roles = [] %>
+    <% visible_roles << 'Administrador' if menu['visible_for_administrator'] %>
+    <% visible_roles << 'Agent' if menu['visible_for_agent'] %>
+    <div>
+      <strong><%= menu['label'] %></strong>: <%= menu['link'] %>
+      (<%= visible_roles.join(', ').presence || 'Sem visibilidade para Agent/Administrador' %>)
+    </div>
   <% end %>
 <% else %>
   <span>-</span>

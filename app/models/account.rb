@@ -29,7 +29,6 @@ class Account < ApplicationRecord
   include Featurable
   include CacheKeys
   include CaptainFeaturable
-  include AccountSettings
 
   SETTINGS_PARAMS_SCHEMA = {
     'type': 'object',
@@ -90,6 +89,7 @@ class Account < ApplicationRecord
   store_accessor :settings, :captain_models, :captain_features
   store_accessor :settings, :custom_menus, :custom_menu_title
   store_accessor :settings, :wordpress_blog
+  include AccountSettings
 
   has_many :account_users, dependent: :destroy_async
   has_many :agent_bot_inboxes, dependent: :destroy_async

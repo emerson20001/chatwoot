@@ -101,19 +101,7 @@ const hiddenSettingsMenusForNonSuperAdmin = [
   'Settings Security',
 ];
 const isSuperAdmin = computed(() => currentUser.value?.type === 'SuperAdmin');
-const currentHostname = computed(() =>
-  String(globalThis?.location?.hostname || '').toLowerCase()
-);
-const isLocalOrCentralDomain = computed(() => {
-  return (
-    currentHostname.value === 'localhost' ||
-    currentHostname.value.includes('centraldeatendimento')
-  );
-});
-const canSeeBrandingMenu = computed(() => {
-  if (isSuperAdmin.value) return true;
-  return currentUserRole.value === 'administrator' && !isLocalOrCentralDomain.value;
-});
+const canSeeBrandingMenu = computed(() => isSuperAdmin.value);
 
 onMounted(() => {
   store.dispatch('labels/get');
@@ -171,9 +159,41 @@ const newReportRoutes = () => [
 
 const reportRoutes = computed(() => newReportRoutes());
 
+const normalizedCustomMenus = computed(() => {
+  const rawCustomMenus = currentAccount.value?.settings?.custom_menus;
+
+  if (Array.isArray(rawCustomMenus)) {
+    return rawCustomMenus;
+  }
+
+  if (rawCustomMenus && typeof rawCustomMenus === 'object') {
+    return Object.values(rawCustomMenus);
+  }
+
+  return [];
+});
+
 const customMenus = computed(() =>
-  (currentAccount.value?.settings?.custom_menus || []).filter(
-    menu => menu?.label?.trim() && menu?.link?.trim()
+  normalizedCustomMenus.value.filter(
+    menu => {
+      if (!menu?.label?.trim() || !menu?.link?.trim()) {
+        return false;
+      }
+
+      if (isSuperAdmin.value) {
+        return true;
+      }
+
+      if (currentUserRole.value === 'administrator') {
+        return menu.visible_for_administrator !== false;
+      }
+
+      if (currentUserRole.value === 'agent') {
+        return menu.visible_for_agent !== false;
+      }
+
+      return false;
+    }
   )
 );
 const customMenuTitle = computed(

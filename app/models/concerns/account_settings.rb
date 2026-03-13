@@ -30,6 +30,7 @@ module AccountSettings
   def parse_custom_menus(value)
     return JSON.parse(value) if value.is_a?(String)
     return value if value.is_a?(Array)
+    return value.to_h.values if value.respond_to?(:to_h)
 
     []
   end
@@ -41,6 +42,22 @@ module AccountSettings
     link = item['link'] || item[:link]
     return if label.blank? || link.blank?
 
-    { 'label' => label.to_s.strip, 'link' => link.to_s.strip }
+    {
+      'label' => label.to_s.strip,
+      'link' => link.to_s.strip,
+      'visible_for_administrator' => normalize_custom_menu_visibility(item, :visible_for_administrator),
+      'visible_for_agent' => normalize_custom_menu_visibility(item, :visible_for_agent)
+    }
+  end
+
+  def normalize_custom_menu_visibility(item, key)
+    raw_value = if item.key?(key.to_s)
+                  item[key.to_s]
+                elsif item.key?(key)
+                  item[key]
+                end
+    return true if raw_value.nil?
+
+    ActiveModel::Type::Boolean.new.cast(raw_value)
   end
 end
