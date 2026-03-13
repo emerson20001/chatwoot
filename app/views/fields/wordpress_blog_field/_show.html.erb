@@ -15,6 +15,9 @@
   <% if blog['invitee_id'].present? %>
     <div><strong>Invitee ID:</strong> <%= blog['invitee_id'] %></div>
   <% end %>
+  <% if blog['typebot_id'].present? %>
+    <div><strong>Typebot ID:</strong> <%= blog['typebot_id'] %></div>
+  <% end %>
 <% else %>
   <span>-</span>
 <% end %>

@@ -125,8 +125,8 @@ class AccountDashboard < Administrate::BaseDashboard
   def permitted_attributes(action)
     attrs = super + [
       :custom_menu_title,
-      { custom_menus: %i[label link visible_for_administrator visible_for_agent] },
-      { wordpress_blog: %i[blog_id domain name slug invitee_id] },
+      { custom_menus: %i[label link token_id blog_id url_blog_id visible_for_administrator visible_for_agent] },
+      { wordpress_blog: %i[blog_id domain name slug invitee_id typebot_id] },
       { limits: {} }
     ]
 

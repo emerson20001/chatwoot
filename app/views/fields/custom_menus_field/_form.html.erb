@@ -1,63 +1,20 @@
 <div class="field-unit field-unit--custom-menus">
   <%= f.label field.attribute, "Custom Menu", class: "field-unit__label" %>
   <div class="field-unit__field">
-    <div style="margin-bottom: 8px;">
+    <div style="margin-bottom: 10px;">
       <input
         type="text"
         name="<%= "#{f.object_name}[custom_menu_title]" %>"
         value="<%= f.object.custom_menu_title %>"
-        placeholder="Custom menu title"
+        placeholder="Titulo da secao no menu lateral"
       />
     </div>
+
     <% container_id = "#{field.attribute}-rows-#{SecureRandom.hex(4)}" %>
-    <div id="<%= container_id %>">
-      <% field.custom_menus.each_with_index do |menu, index| %>
-        <div data-custom-menu-row style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap;">
-          <input
-            type="text"
-            name="<%= "#{f.object_name}[#{field.attribute}][#{index}][label]" %>"
-            value="<%= menu['label'] %>"
-            placeholder="Menu name"
-          />
-          <input
-            type="url"
-            name="<%= "#{f.object_name}[#{field.attribute}][#{index}][link]" %>"
-            value="<%= menu['link'] %>"
-            placeholder="https://example.com"
-          />
-          <label style="display: flex; gap: 4px; align-items: center;">
-            <input
-              type="hidden"
-              name="<%= "#{f.object_name}[#{field.attribute}][#{index}][visible_for_administrator]" %>"
-              value="0"
-            />
-            <input
-              type="checkbox"
-              name="<%= "#{f.object_name}[#{field.attribute}][#{index}][visible_for_administrator]" %>"
-              value="1"
-              <%= 'checked' if menu['visible_for_administrator'] %>
-            />
-            Administrador
-          </label>
-          <label style="display: flex; gap: 4px; align-items: center;">
-            <input
-              type="hidden"
-              name="<%= "#{f.object_name}[#{field.attribute}][#{index}][visible_for_agent]" %>"
-              value="0"
-            />
-            <input
-              type="checkbox"
-              name="<%= "#{f.object_name}[#{field.attribute}][#{index}][visible_for_agent]" %>"
-              value="1"
-              <%= 'checked' if menu['visible_for_agent'] %>
-            />
-            Agent
-          </label>
-          <button type="button" data-add-custom-menu>Add New</button>
-          <button type="button" data-remove-custom-menu style="background: #dc2626; color: #ffffff;">Remove</button>
-        </div>
-      <% end %>
-    </div>
+    <div id="<%= container_id %>" style="display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <% add_button_id = "#{field.attribute}-add-#{SecureRandom.hex(4)}" %>
+    <button type="button" id="<%= add_button_id %>" style="margin-top: 10px;">Adicionar Menu</button>
   </div>
 </div>
 
@@ -67,42 +24,74 @@
     if (!container || container.dataset.initialized === 'true') return;
 
     const menuFieldsPrefix = '<%= "#{f.object_name}[#{field.attribute}]" %>';
-    let nextRowIndex = <%= field.custom_menus.length %>;
+    const initialMenus = <%= raw(json_escape(field.custom_menus.to_json)) %>;
+    let nextRowIndex = 0;
 
-    const buildRow = () => {
+    const escapeHtml = value => {
+      if (value === null || value === undefined) return '';
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    };
+
+    const buildRow = menu => {
       const rowIndex = nextRowIndex++;
       const row = document.createElement('div');
       row.setAttribute('data-custom-menu-row', '');
-      row.style.display = 'flex';
-      row.style.gap = '8px';
-      row.style.marginBottom = '8px';
-      row.style.alignItems = 'center';
-      row.style.flexWrap = 'wrap';
+      row.style.border = '1px solid #e5e7eb';
+      row.style.borderRadius = '6px';
+      row.style.padding = '12px';
+      row.style.background = '#ffffff';
+
+      const menuName = escapeHtml(menu?.label || '');
+      const menuUrl = escapeHtml(menu?.link || '');
+      const tokenId = escapeHtml(menu?.token_id || '');
+      const blogId = escapeHtml(menu?.blog_id || '');
+      const urlBlogId = escapeHtml(menu?.url_blog_id || '');
+      const visibleForAdministrator = menu?.visible_for_administrator !== false;
+      const visibleForAgent = menu?.visible_for_agent !== false;
+
       row.innerHTML = `
-        <input type="text" name="${menuFieldsPrefix}[${rowIndex}][label]" placeholder="Menu name" />
-        <input type="url" name="${menuFieldsPrefix}[${rowIndex}][link]" placeholder="https://example.com" />
-        <label style="display: flex; gap: 4px; align-items: center;">
-          <input type="hidden" name="${menuFieldsPrefix}[${rowIndex}][visible_for_administrator]" value="0" />
-          <input type="checkbox" name="${menuFieldsPrefix}[${rowIndex}][visible_for_administrator]" value="1" checked />
-          Administrador
-        </label>
-        <label style="display: flex; gap: 4px; align-items: center;">
-          <input type="hidden" name="${menuFieldsPrefix}[${rowIndex}][visible_for_agent]" value="0" />
-          <input type="checkbox" name="${menuFieldsPrefix}[${rowIndex}][visible_for_agent]" value="1" checked />
-          Agent
-        </label>
-        <button type="button" data-add-custom-menu>Add New</button>
-        <button type="button" data-remove-custom-menu style="background: #dc2626; color: #ffffff;">Remove</button>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; margin-bottom: 8px;">
+          <input type="text" name="${menuFieldsPrefix}[${rowIndex}][label]" value="${menuName}" placeholder="Nome do menu" />
+          <input type="url" name="${menuFieldsPrefix}[${rowIndex}][link]" value="${menuUrl}" placeholder="URL da pagina (ex.: http://localhost:8090/pt-BR/signin)" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 8px;">
+          <input type="text" name="${menuFieldsPrefix}[${rowIndex}][token_id]" value="${tokenId}" placeholder="Token/ID por menu (postMessage)" />
+          <input type="text" name="${menuFieldsPrefix}[${rowIndex}][blog_id]" value="${blogId}" placeholder="blog_id (opcional)" />
+          <input type="text" name="${menuFieldsPrefix}[${rowIndex}][url_blog_id]" value="${urlBlogId}" placeholder="url_blog_id (opcional)" />
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <label style="display: flex; gap: 4px; align-items: center;">
+              <input type="hidden" name="${menuFieldsPrefix}[${rowIndex}][visible_for_administrator]" value="0" />
+              <input type="checkbox" name="${menuFieldsPrefix}[${rowIndex}][visible_for_administrator]" value="1" ${visibleForAdministrator ? 'checked' : ''} />
+              Administrador
+            </label>
+            <label style="display: flex; gap: 4px; align-items: center;">
+              <input type="hidden" name="${menuFieldsPrefix}[${rowIndex}][visible_for_agent]" value="0" />
+              <input type="checkbox" name="${menuFieldsPrefix}[${rowIndex}][visible_for_agent]" value="1" ${visibleForAgent ? 'checked' : ''} />
+              Agent
+            </label>
+          </div>
+
+          <button type="button" data-remove-custom-menu style="background: #dc2626; color: #ffffff;">Remover</button>
+        </div>
       `;
+
       return row;
     };
 
-    container.addEventListener('click', function(event) {
-      if (event.target.matches('[data-add-custom-menu]')) {
-        container.appendChild(buildRow());
-        return;
-      }
+    const addRow = menu => {
+      container.appendChild(buildRow(menu || {}));
+    };
 
+    container.addEventListener('click', function(event) {
       if (!event.target.matches('[data-remove-custom-menu]')) return;
       const shouldRemove = window.confirm('Confirma remover este menu?');
       if (!shouldRemove) return;
@@ -110,8 +99,17 @@
       if (row) row.remove();
     });
 
-    if (!container.querySelector('[data-custom-menu-row]')) {
-      container.appendChild(buildRow());
+    const addRootButton = document.getElementById('<%= add_button_id %>');
+    if (addRootButton) {
+      addRootButton.addEventListener('click', function() {
+        addRow({});
+      });
+    }
+
+    if (Array.isArray(initialMenus) && initialMenus.length > 0) {
+      initialMenus.forEach(menu => addRow(menu));
+    } else {
+      addRow({});
     }
 
     container.dataset.initialized = 'true';

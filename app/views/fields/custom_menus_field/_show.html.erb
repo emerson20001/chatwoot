@@ -9,6 +9,15 @@
     <div>
       <strong><%= menu['label'] %></strong>: <%= menu['link'] %>
       (<%= visible_roles.join(', ').presence || 'Sem visibilidade para Agent/Administrador' %>)
+      <% if menu['token_id'].present? %>
+        | token_id: <%= menu['token_id'] %>
+      <% end %>
+      <% if menu['blog_id'].present? %>
+        | blog_id: <%= menu['blog_id'] %>
+      <% end %>
+      <% if menu['url_blog_id'].present? %>
+        | url_blog_id: <%= menu['url_blog_id'] %>
+      <% end %>
     </div>
   <% end %>
 <% else %>
