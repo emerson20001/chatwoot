@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
     :class="[
       border && !isPillVariant && 'border-b border-b-n-weak',
       isPillVariant &&
-        'bg-[#F0F2F5] dark:bg-[#202326] rounded-[18px] px-1.5 py-1 shadow-sm',
+        'bg-[#F0F2F5] dark:bg-[#212121] rounded-[18px] px-1.5 py-1 shadow-sm',
     ]"
   >
     <button

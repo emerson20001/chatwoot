@@ -12,6 +12,9 @@
   <% if blog['slug'].present? %>
     <div><strong>Slug:</strong> <%= blog['slug'] %></div>
   <% end %>
+  <% if blog['invitee_id'].present? %>
+    <div><strong>Invitee ID:</strong> <%= blog['invitee_id'] %></div>
+  <% end %>
 <% else %>
   <span>-</span>
 <% end %>

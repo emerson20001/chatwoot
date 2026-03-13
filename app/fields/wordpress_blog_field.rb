@@ -13,7 +13,8 @@ class WordpressBlogField < Administrate::Field::Base
       'blog_id' => value_for(item, :blog_id),
       'domain' => value_for(item, :domain),
       'name' => value_for(item, :name),
-      'slug' => value_for(item, :slug)
+      'slug' => value_for(item, :slug),
+      'invitee_id' => value_for(item, :invitee_id)
     }.compact
   end
 

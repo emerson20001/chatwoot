@@ -720,7 +720,7 @@ const menuItems = computed(() => {
       closeMobileSidebar,
       { ignore: ['#mobile-sidebar-launcher'] },
     ]"
-    class="bg-[#F7F8FA] dark:bg-[#202326] rtl:border-l ltr:border-r border-[#E1E4E8] dark:border-[#1F2A37] flex flex-col text-sm pb-1 fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 transition-transform duration-200 ease-in-out md:static md:flex-shrink-0 md:ltr:translate-x-0 md:rtl:-translate-x-0"
+    class="bg-[#F7F8FA] dark:bg-[#212121] rtl:border-l ltr:border-r border-[#E1E4E8] dark:border-[#424242] flex flex-col text-sm pb-1 fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 transition-transform duration-200 ease-in-out md:static md:flex-shrink-0 md:ltr:translate-x-0 md:rtl:-translate-x-0"
     :class="[
       {
         'shadow-lg md:shadow-none': isMobileSidebarOpen,
@@ -755,7 +755,7 @@ const menuItems = computed(() => {
         <RouterLink
           :to="{ name: 'search' }"
           :title="searchPlaceholder"
-          class="flex gap-2 items-center px-2 py-1 w-full h-7 rounded-lg outline outline-1 outline-n-weak bg-white/70 dark:bg-[#202326]"
+          class="flex gap-2 items-center px-2 py-1 w-full h-7 rounded-lg outline outline-1 outline-n-weak bg-white/70 dark:bg-[#212121]"
           :class="isCollapsed ? 'w-8 px-0 justify-center' : ''"
         >
           <span class="flex-shrink-0 i-lucide-search size-5 text-n-slate-11" />
@@ -775,7 +775,7 @@ const menuItems = computed(() => {
               icon="i-lucide-pen-line"
               color="slate"
               size="sm"
-              class="!h-7 !bg-white/70 dark:!bg-[#202326] !outline-n-weak !text-n-slate-11"
+              class="!h-7 !bg-white/70 dark:!bg-[#212121] !outline-n-weak !text-n-slate-11"
               :class="isCollapsed ? '!w-8 !px-0 !justify-center' : ''"
               @click="onComposeOpen(toggle)"
             />
@@ -802,7 +802,7 @@ const menuItems = computed(() => {
       class="flex flex-col flex-shrink-0 relative gap-1 justify-between items-center"
     >
       <div
-        class="pointer-events-none absolute inset-x-0 -top-[31px] h-8 bg-gradient-to-t from-[#F7F8FA] dark:from-[#202326] to-transparent"
+        class="pointer-events-none absolute inset-x-0 -top-[31px] h-8 bg-gradient-to-t from-[#F7F8FA] dark:from-[#212121] to-transparent"
       />
       <SidebarChangelogCard
         v-if="
